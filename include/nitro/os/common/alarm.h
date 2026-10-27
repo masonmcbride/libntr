@@ -13,7 +13,7 @@ extern "C" {
 #endif
 
 #ifndef SDK_BUILD_ARM
-#include <SDL2/SDL.h>
+#include <ntr_host.h>
 #endif
 
 typedef void (*OSAlarmHandler) (void *);
@@ -28,7 +28,7 @@ struct OSiAlarm {
 	OSTick period;
 	OSTick start;
 #ifndef SDK_BUILD_ARM
-  SDL_TimerID sdlTimer;
+  HG_TimerID sdlTimer;
 #endif
 };
 

@@ -27,7 +27,7 @@ static u32 OS_SDLTimerCallback(u32 interval, void * param)
 
     if(myAlarm) {
         if(myAlarm->period == 0) {
-            SDL_RemoveTimer(myAlarm->sdlTimer);
+            HG_RemoveTimer(myAlarm->sdlTimer);
             myAlarm->sdlTimer = 0;
         }
         if(myAlarm->handler) {
@@ -194,7 +194,7 @@ void OS_SetAlarm (OSAlarm * alarm, OSTick tick, OSAlarmHandler handler, void * a
 
 #ifdef SDK_PORT
     u32 milliseconds = OS_TicksToMilliSeconds(tick);
-    alarm->sdlTimer = SDL_AddTimer(milliseconds, OS_SDLTimerCallback, (void*)alarm);
+    alarm->sdlTimer = HG_AddTimer(milliseconds, OS_SDLTimerCallback, (void*)alarm);
 #endif
 }
 
@@ -226,7 +226,7 @@ void OS_SetPeriodicAlarm (OSAlarm * alarm, OSTick start, OSTick period, OSAlarmH
     (void)OS_RestoreInterrupts(enabled);
 
 #ifdef SDK_PORT
-    alarm->sdlTimer = SDL_AddTimer(OS_TicksToMilliSeconds(period), OS_SDLTimerCallback, (void*)alarm);
+    alarm->sdlTimer = HG_AddTimer(OS_TicksToMilliSeconds(period), OS_SDLTimerCallback, (void*)alarm);
 #endif
 }
 
@@ -267,7 +267,7 @@ void OS_CancelAlarm (OSAlarm * alarm)
 
     (void)OS_RestoreInterrupts(enabled);
 #ifdef SDK_PORT
-    SDL_RemoveTimer(alarm->sdlTimer);
+    HG_RemoveTimer(alarm->sdlTimer);
 #endif
 }
 

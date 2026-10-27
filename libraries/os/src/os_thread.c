@@ -7,12 +7,12 @@
 
 #include <pthread.h>
 
-#include <SDL2/SDL.h>
+#include <ntr_host.h>
 
 pthread_mutex_t osiThreadMutex = PTHREAD_MUTEX_INITIALIZER;
 
 typedef struct {
-    SDL_threadID threadId;
+    HG_ThreadID threadId;
     OSThread * thread;
 } SIM_OSThreadList_t;
 #define SIM_OS_THREAD_LIST_MAX 1024
@@ -26,7 +26,7 @@ int SIM_OS_RunThread(void * thread)
 	OSThread * curThread;
 	curThread = (OSThread *)thread;
     s_threadList[s_curThreadListIdx].thread = curThread;
-    s_threadList[s_curThreadListIdx].threadId = SDL_GetThreadID(NULL);
+    s_threadList[s_curThreadListIdx].threadId = HG_GetThreadID(NULL);
     curThread->threadListIdx = s_curThreadListIdx;
     s_curThreadListIdx++;
     if(s_curThreadListIdx >= SIM_OS_THREAD_LIST_MAX) {
@@ -169,7 +169,7 @@ OSThread * WIN_OS_GetCurrentThread(void)
 {
     pthread_mutex_lock(&osiThreadMutex);
     OSThread * thread = NULL;
-    SDL_threadID self = SDL_GetThreadID(NULL);
+    HG_ThreadID self = HG_GetThreadID(NULL);
     for(int i=0; i < SIM_OS_THREAD_LIST_MAX; i++) {
         if(s_threadList[i].threadId == self) {
             thread = s_threadList[i].thread;
@@ -621,7 +621,7 @@ void OS_CreateThread (OSThread * thread, void (*func)(void *), void * arg, void 
 #endif
 
 #ifdef SDK_PORT
-    thread->win_sdlThread = SDL_CreateThread(SIM_OS_RunThread, thread->funcName, (void*)thread);
+    thread->win_sdlThread = HG_CreateThread(SIM_OS_RunThread, thread->funcName, (void*)thread);
     thread->win_threadState = 1;
 #endif
 
@@ -938,7 +938,7 @@ void OS_JoinThread (OSThread * thread)
     if(thread->state == OS_THREAD_STATE_TERMINATED) {
         return;
     }
-    SDL_WaitThread(thread->win_sdlThread, NULL);
+    HG_WaitThread(thread->win_sdlThread, NULL);
     #else
     SDK_ASSERT(thread);
 
@@ -1007,7 +1007,7 @@ void OS_SleepThread (OSThreadQueue * queue)
         currentThread->state = OS_THREAD_STATE_WAITING;
         OSi_RescheduleThread();
         #ifdef SDK_PORT
-        SDL_Delay(1);
+        HG_Delay(1);
         #endif
     }
 #endif
@@ -1074,7 +1074,7 @@ void OS_WakeupThreadDirect (OSThread * thread)
         OSi_RescheduleThread();
         #ifdef SDK_PORT
         while(thread->win_threadState == 0){
-            SDL_Delay(1);
+            HG_Delay(1);
         }
         #endif
     }
@@ -1341,7 +1341,7 @@ u32 OS_GetThreadPriority (const OSThread * thread)
 void OS_Sleep (u32 msec)
 {
     #ifdef SDK_PORT
-    SDL_Delay(msec);
+    HG_Delay(msec);
     #else
     OSAlarm alarm;
 

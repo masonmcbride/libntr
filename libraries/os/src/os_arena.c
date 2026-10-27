@@ -1,6 +1,9 @@
 #include <nitro.h>
 
-#ifdef SDK_PORT
+#ifdef SDK_BUILD_MACOS
+#define OSi_TRUNC(n, a) (((uPtr)(n)) & ~((uPtr)(a) - 1))
+#define OSi_ROUND(n, a) (((uPtr)(n) + (uPtr)(a) - 1) & ~((uPtr)(a) - 1))
+#elif defined(SDK_PORT)
 #define OSi_TRUNC(n, a)     (((u64) (n)) & ~((a) - 1))
 #define OSi_ROUND(n, a)     (((u64) (n) + (a) - 1) & ~((a) - 1))
 #else
@@ -417,7 +420,7 @@ void * OS_AllocFromArenaLo (OSArenaId id, u32 size, u32 align)
         return NULL;
     }
 
-    #ifdef SDK_PORT
+    #if defined(SDK_PORT) && !defined(SDK_BUILD_MACOS)
     arenaLo = ptr = (void *)(ptr);
     arenaLo += size;
     arenaLo = (u8 *)(arenaLo);

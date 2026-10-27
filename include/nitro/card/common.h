@@ -51,6 +51,9 @@ typedef enum {
 	CARD_BACKUP_TYPE_NOT_USE = 0
 } CARDBackupType;
 
+// HeartGold's original SDK vendor-specific 4-Mbit backup identifier.
+#define CARD_BACKUP_TYPE_FLASH_4MBITS_EX (CARDBackupType)(CARD_BACKUP_TYPE_FLASH_4MBITS | (255 << CARD_BACKUP_TYPE_VENDER_SHIFT))
+
 #define CARD_BACKUP_TYPE_FLASH_64MBITS_EX (CARDBackupType)CARD_BACKUP_TYPE_DEFINE(FLASH, 23, 1)
 
 #define CARD_THREAD_PRIORITY_DEFAULT    4

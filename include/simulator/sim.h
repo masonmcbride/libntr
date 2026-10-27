@@ -3,7 +3,7 @@
 #include <nitro.h>
 #include <nitro/types.h>
 #include <nitro/gx/gx_vramcnt.h>
-#include <SDL2/SDL.h>
+#include <ntr_host.h>
 #include <simulator/config/sim_config.h>
 #include <simulator/sim_debug.h>
 
@@ -33,7 +33,7 @@ typedef struct WIN_snd_channel_info {
 	u32 pos;
 	u8 stream[500000];
 	u8 resampStream[1800000];
-	SDL_AudioStream * sdlStream;
+	HG_AudioStream * sdlStream;
 	u32 streamSampleRate;
 	double pitchRatio;
 	u32 prevTimer;
@@ -76,7 +76,7 @@ u64 SIM_GetRenderFrameTime();
 u64 SIM_GetFullFrameTime();
 const char * SIM_GetLibntrGitHash();
 const char * SIM_GetProjectGitHash();
-SDL_Window * SIM_GetSDLWindow();
+HG_Window * SIM_GetSDLWindow();
 
 extern GXVRamTex s_SIM_GXVRamTex;
 extern GXVRamTexPltt s_SIM_GXVRamTexPltt;

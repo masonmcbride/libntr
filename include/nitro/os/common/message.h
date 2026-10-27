@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 #ifdef SDK_PORT
-#include <SDL2/SDL.h>
+#include <ntr_host.h>
 #endif
 
 typedef struct OSMessageQueue OSMessageQueue;
@@ -22,7 +22,7 @@ struct OSMessageQueue {
 	s32 firstIndex;
 	s32 usedCount;
 #ifdef SDK_PORT
-  SDL_sem * semaphore;
+  HG_Semaphore * semaphore;
 #endif
 };
 

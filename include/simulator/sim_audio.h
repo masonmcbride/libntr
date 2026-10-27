@@ -4,7 +4,7 @@
 #include <nitro.h>
 #include <nitro/types.h>
 #include <simulator/sim.h>
-#include <SDL2/SDL.h>
+#include <ntr_host.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -17,7 +17,7 @@ extern u16 s_SIM_sndpnt[16];
 extern u32 s_SIM_sndlen[16];
 
 void SIM_Audio_Init(int aAudioFrequency);
-void SIM_Audio_Callback(void *userdata, Uint8 *stream, int len);
+void SIM_Audio_Callback(void *userdata, uint8_t *stream, int len);
 
 void SIM_Audio_StartChannel(int chNo);
 

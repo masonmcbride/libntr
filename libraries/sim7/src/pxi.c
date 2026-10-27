@@ -6,8 +6,8 @@
 
 #include "wmsp_private.h"
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_thread.h>
+#include <ntr_host.h>
+#include <ntr_host.h>
 
 #ifdef SDK_TRACY_ENABLE
 #include "tracy/TracyC.h"
@@ -23,9 +23,9 @@ static SIM_queue_t SIM_pxi7to9Queue;
 
 extern PXIFifoCallback FifoRecvCallbackTable7[PXI_MAX_FIFO_TAG];
 
-static SDL_sem * pxiSemaphore;
-static SDL_sem * pxi7to9Semaphore;
-static SDL_sem * osThreadSemaphore;
+static HG_Semaphore * pxiSemaphore;
+static HG_Semaphore * pxi7to9Semaphore;
+static HG_Semaphore * osThreadSemaphore;
 
 void SIM_pxiInit(void)
 {
@@ -50,8 +50,8 @@ void SIM_pxiInit(void)
 
 	pxi7to9QueuePtr = &SIM_pxi7to9Queue;
 
-	pxiSemaphore = SDL_CreateSemaphore(0);
-	pxi7to9Semaphore = SDL_CreateSemaphore(0);
+	pxiSemaphore = HG_CreateSemaphore(0);
+	pxi7to9Semaphore = HG_CreateSemaphore(0);
 }
 
 void SIM_procPXI(void)
@@ -381,7 +381,7 @@ int SIM_procPxiThread( void * arg )
 {
 	while(1)
 	{
-		SDL_SemWait(pxiSemaphore);
+		HG_SemWait(pxiSemaphore);
 		#ifdef SDK_TRACY_ENABLE
 		TracyCZone(ctx, 1);
 		#endif
@@ -395,14 +395,14 @@ int SIM_procPxiThread( void * arg )
 
 void SIM_PostPxiThread()
 {
-	SDL_SemPost(pxiSemaphore);
+	HG_SemPost(pxiSemaphore);
 }
 
 int SIM_procPxi7to9Thread( void * arg )
 {
 	while(1)
 	{
-		SDL_SemWait(pxi7to9Semaphore);
+		HG_SemWait(pxi7to9Semaphore);
 		#ifdef SDK_TRACY_ENABLE
 		TracyCZone(ctx, 1);
 		#endif
@@ -416,7 +416,7 @@ int SIM_procPxi7to9Thread( void * arg )
 
 void SIM_PostPxi7to9Thread()
 {
-	SDL_SemPost(pxi7to9Semaphore);
+	HG_SemPost(pxi7to9Semaphore);
 }
 
 void * SIM_sndAlarm(void * arg)
@@ -430,7 +430,7 @@ void * SIM_sndAlarm(void * arg)
 	timeMs = (u32)(timeSec * 1000.0f);
 	double periodSec = (double)(sndAlarmInfo->period * 32.0f) / (double)SND_TIMER_CLOCK;
 	periodMs = (u32)(periodSec * 1000.0f);
-	SDL_Delay( timeMs );
+	HG_Delay( timeMs );
 	SNDi_CallAlarmHandler( sndAlarmInfo->alarmNo | (sndAlarmInfo->id) <<8 );
 
 	if( sndAlarmInfo->period != 0 )
@@ -441,7 +441,7 @@ void * SIM_sndAlarm(void * arg)
 			{
 				return NULL;
 			}
-			SDL_Delay( periodMs );
+			HG_Delay( periodMs );
 			SNDi_CallAlarmHandler( sndAlarmInfo->alarmNo | (sndAlarmInfo->id) <<8 );
 		}
 	}

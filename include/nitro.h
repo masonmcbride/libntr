@@ -1,6 +1,11 @@
 #ifndef NITRO_H_
 #define NITRO_H_
 
+// Data-only asset tools need fixed-width types, not host runtime services.
+#if defined(SDK_DATA_ONLY)
+#include <nitro/types.h>
+#else
+
 #if SDK_VERSION_MAJOR == 4
 #ifdef SDK_X86
 #define ATTRIBUTE_ALIGN(x) __attribute__((aligned(x)))
@@ -55,7 +60,10 @@
     #include <nitro/fs.h>
     #include <nitro/rtc.h>
     #include <nitro/gx.h>
+    /* HeartGold's original WM implementation owns its API declarations. */
+    #ifndef HG_USE_ORIGINAL_WM
     #include <nitro/wm.h>
+    #endif
     #include <nitro/wvr.h>
     #include <nitro/ctrdg.h>
     #include <nitro/math.h>
@@ -71,7 +79,9 @@
         #include <nitro/fx/fx_mtx.h>
         #include <nitro/cp.h>
         #include <nitro/ext.h>
+        #ifndef HG_USE_ORIGINAL_WM
         #include <nitro/mb.h>
+        #endif
         #include <nitro/wbt.h>
         #include <nitro/wfs.h>
         #include <nitro/env.h>
@@ -86,7 +96,9 @@
         #include <nitro/fx/fx_mtx.h>
         #include <nitro/cp.h>
         #include <nitro/ext.h>
+        #ifndef HG_USE_ORIGINAL_WM
         #include <nitro/mb.h>
+        #endif
         #include <nitro/wbt.h>
         #include <nitro/wfs.h>
         #include <nitro/env.h>
@@ -101,7 +113,9 @@
         #include <nitro/fx/fx_mtx.h>
         #include <nitro/cp.h>
         #include <nitro/ext.h>
+        #ifndef HG_USE_ORIGINAL_WM
         #include <nitro/mb.h>
+        #endif
         #include <nitro/wbt.h>
         #include <nitro/wfs.h>
         #include <nitro/env.h>
@@ -111,5 +125,7 @@
 #elif SDK_VERSION_MAJOR == 5
 #include <twl_hybrid.h>
 #endif
+
+#endif // SDK_DATA_ONLY
 
 #endif

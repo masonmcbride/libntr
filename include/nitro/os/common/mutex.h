@@ -10,7 +10,7 @@ extern "C" {
 #include <nitro/os/common/thread.h>
 
 #ifdef SDK_PORT
-#include <SDL2/SDL.h>
+#include <ntr_host.h>
 #endif
 
 #if SDK_VERSION_MAJOR == 5
@@ -41,7 +41,7 @@ struct OSMutex {
 	OSMutexLink link;
 #endif
 #ifdef SDK_PORT
-  SDL_mutex * sdlMutex;
+  HG_Mutex * sdlMutex;
 #endif
 };
 

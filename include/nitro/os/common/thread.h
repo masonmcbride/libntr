@@ -7,7 +7,7 @@
 #include <nitro/version.h>
 
 #ifdef SDK_PORT
-#include <SDL2/SDL_thread.h>
+#include <ntr_host.h>
 #endif
 
 #ifdef __cplusplus
@@ -108,7 +108,7 @@ struct _OSThread {
     u64 stackTop;
     u64 stackBottom;
     u64 stackWarningOffset;
-    SDL_Thread * win_sdlThread;
+    HG_Thread * win_sdlThread;
     u8 win_threadState;
     u32 threadListIdx;
     char funcName[64];

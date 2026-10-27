@@ -1,5 +1,5 @@
-#ifndef NITRO_FX_H_
-#define NITRO_FX_H_
+#ifndef NITRO_FX_FX_H_
+#define NITRO_FX_FX_H_
 
 #if !(defined(SDK_WIN32) || defined(SDK_FROM_TOOL))
     #include <nitro/misc.h>

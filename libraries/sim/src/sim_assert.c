@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include "simulator/assert.h"
 
-#ifdef SDK_BUILD_LINUX
+#if defined(SDK_BUILD_LINUX) || defined(SDK_BUILD_MACOS)
 #include <signal.h>
 #endif
 
@@ -34,7 +34,7 @@ void SIM_debugBreak() {
 		__debugbreak();
 	}
 	#endif
-    #ifdef SDK_BUILD_LINUX
+    #if defined(SDK_BUILD_LINUX) || defined(SDK_BUILD_MACOS)
     raise(SIGTRAP);
     #endif
 }

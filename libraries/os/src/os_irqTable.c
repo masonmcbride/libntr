@@ -33,11 +33,11 @@ void OSi_IrqNDma3(void);
 #endif
 #endif
 
-#ifdef SDK_PORT
+#if defined(SDK_PORT) && !defined(SDK_BUILD_MACOS)
 void OSi_IrqVblank(void);
 #else
 OSIrqFunction OS_IRQTable[OS_IRQ_TABLE_MAX] = {
-#ifdef SDK_ARM9
+#if defined(SDK_ARM9) || defined(SDK_BUILD_MACOS)
     OS_IrqDummy,
 #else
     OSi_IrqVBlank,

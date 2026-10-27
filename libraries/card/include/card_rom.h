@@ -43,7 +43,11 @@ typedef struct CARDRomStat {
 	u8 * cache_page;
 	u32 dummy[5];
 	u8 cache_buf[CARD_ROM_PAGE_SIZE];
+#ifdef SDK_BUILD_MACOS
+} __attribute__((aligned(32))) CARDRomStat;
+#else
 } CARDRomStat;
+#endif
 
 SDK_COMPILER_ASSERT(sizeof(CARDRomStat) % 32 == 0);
 

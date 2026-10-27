@@ -305,6 +305,9 @@ REGType32v s_reg_GXS_DB_DISPCNT;
 REGType16v s_reg_GXS_DB_MASTER_BRIGHT;
 
 //ioreg_MI
+#ifdef SDK_BUILD_MACOS
+REGType32v s_reg_MI_DMA[16];
+#else
 REGType32v s_reg_MI_DMA0SAD;
 REGType32v s_reg_MI_DMA0DAD;
 REGType32v s_reg_MI_DMA0CNT;
@@ -321,6 +324,7 @@ REGType32v s_reg_MI_DMA0_CLR_DATA;
 REGType32v s_reg_MI_DMA1_CLR_DATA;
 REGType32v s_reg_MI_DMA2_CLR_DATA;
 REGType32v s_reg_MI_DMA3_CLR_DATA;
+#endif
 REGType16v s_reg_MI_MCCNT0;
 REGType16v s_reg_MI_MCD0;
 REGType32v s_reg_MI_MCD1;
@@ -380,12 +384,27 @@ REGType16v s_reg_SPI_SPICNT;
 REGType16v s_reg_SPI_SPID;
 
 //mmap_shared
+#ifdef SDK_BUILD_MACOS
+_Alignas(32)
+#endif
 u8 s_HW_MAIN_MEM_SYSTEM[HW_MAIN_MEM_SYSTEM_SIZE];
+#ifdef SDK_BUILD_MACOS
+_Alignas(32)
+#endif
 u8 s_HW_ARENA_INFO_BUF[sizeof(OSArenaInfo)];
+#ifdef SDK_BUILD_MACOS
+_Alignas(32)
+#endif
 u8 s_HW_MAIN_MEM_SUB[0x400000];
 
 //mmap_global
+#ifdef SDK_BUILD_MACOS
+_Alignas(32)
+#endif
 u8 s_HW_MAIN_MEM[0x800000];
+#ifdef SDK_BUILD_MACOS
+_Alignas(32)
+#endif
 u8 s_HW_MAIN_MEM_EX[0x800000];
 u8 s_HW_BG_PLTT[0x200];
 u8 s_HW_OBJ_PLTT[0x200];
@@ -400,6 +419,9 @@ u8 s_HW_OAM[0x400];
 u8 s_HW_DB_OAM[0x400];
 u8 s_HW_CTRDG_ROM[0x20000];
 u8 s_HW_EXT_WRAM[0x40000];
+#ifdef SDK_BUILD_MACOS
+_Alignas(32)
+#endif
 u8 s_HW_PRV_WRAM[0x10000];
 
 //mmap_tcm

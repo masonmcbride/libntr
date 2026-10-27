@@ -17,6 +17,26 @@ extern "C" {
  * Definition of Register offsets, addresses and variables.
  */
 
+// MI_StopDma and MIi_DmaSet access this register block by byte offset.
+#ifdef SDK_BUILD_MACOS
+extern REGType32v s_reg_MI_DMA[16];
+#define s_reg_MI_DMA0SAD s_reg_MI_DMA[0]
+#define s_reg_MI_DMA0DAD s_reg_MI_DMA[1]
+#define s_reg_MI_DMA0CNT s_reg_MI_DMA[2]
+#define s_reg_MI_DMA1SAD s_reg_MI_DMA[3]
+#define s_reg_MI_DMA1DAD s_reg_MI_DMA[4]
+#define s_reg_MI_DMA1CNT s_reg_MI_DMA[5]
+#define s_reg_MI_DMA2SAD s_reg_MI_DMA[6]
+#define s_reg_MI_DMA2DAD s_reg_MI_DMA[7]
+#define s_reg_MI_DMA2CNT s_reg_MI_DMA[8]
+#define s_reg_MI_DMA3SAD s_reg_MI_DMA[9]
+#define s_reg_MI_DMA3DAD s_reg_MI_DMA[10]
+#define s_reg_MI_DMA3CNT s_reg_MI_DMA[11]
+#define s_reg_MI_DMA0_CLR_DATA s_reg_MI_DMA[12]
+#define s_reg_MI_DMA1_CLR_DATA s_reg_MI_DMA[13]
+#define s_reg_MI_DMA2_CLR_DATA s_reg_MI_DMA[14]
+#define s_reg_MI_DMA3_CLR_DATA s_reg_MI_DMA[15]
+#else
 extern REGType32v s_reg_MI_DMA0SAD;
 extern REGType32v s_reg_MI_DMA0DAD;
 extern REGType32v s_reg_MI_DMA0CNT;
@@ -33,6 +53,7 @@ extern REGType32v s_reg_MI_DMA0_CLR_DATA;
 extern REGType32v s_reg_MI_DMA1_CLR_DATA;
 extern REGType32v s_reg_MI_DMA2_CLR_DATA;
 extern REGType32v s_reg_MI_DMA3_CLR_DATA;
+#endif
 extern REGType16v s_reg_MI_MCCNT0;
 extern REGType16v s_reg_MI_MCD0;
 extern REGType32v s_reg_MI_MCD1;

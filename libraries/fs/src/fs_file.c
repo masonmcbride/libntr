@@ -18,7 +18,8 @@
 
 #ifdef SDK_PORT
 #include <string.h>
-#include <SDL2/SDL.h>
+#include <ctype.h>
+#include <ntr_host.h>
 #include <simulator/sim_RomExtractor.h>
 #endif
 
@@ -545,9 +546,9 @@ BOOL FS_OpenFile (FSFile *p_file, const char *path)
         #if FS_FILE_OPEN_DEBUG
         char messageBuf[200] = {0};
         snprintf(messageBuf, 199, "Failed to open file '%s'.", path);
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "ROM Extraction Required", messageBuf, NULL);
+        HG_ShowMessage("ROM Extraction Required", messageBuf);
         #else
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "ROM Extraction Required", "ROM filesystem is missing. Select 'OK' and choose a NDS ROM file in the next step.", NULL);
+        HG_ShowMessage("ROM Extraction Required", "ROM filesystem is missing. Select 'OK' and choose a NDS ROM file in the next step.");
         #endif
 
         SIM_ShowRomExtractionDialog();
