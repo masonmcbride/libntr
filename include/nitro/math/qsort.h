@@ -9,7 +9,11 @@ extern "C" {
 #include <nitro/types.h>
 #include <nitro/math/math.h>
 
+#if defined(SDK_PORT)
+typedef s32 (*MATHCompareFunc) (const void * elem1, const void * elem2);
+#else
 typedef s32 (*MATHCompareFunc) (void * elem1, void * elem2);
+#endif
 
 static inline u32 MATH_QSortStackSize (u32 num)
 {

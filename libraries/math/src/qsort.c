@@ -3,9 +3,85 @@
 #include <nitro/code32.h>
 
 #if defined( SDK_PORT )
-void MATH_QSort( register void* head,  register u32 num,  register u32 width,  register MATHCompareFunc comp, void* stackBuf )
+/* Native translation of the original NitroSDK quicksort below.
+ * This is deliberately not a stable sort. The fifth argument is scratch, not
+ * comparator context. Native scratch is private: DS callers may supply only
+ * 40 bytes, which cannot hold the equivalent stack of native pointers.
+ */
+#include <assert.h>
+#include <stddef.h>
+#include <string.h>
+
+static void swap(unsigned char *a, unsigned char *b, size_t width)
 {
-    return;
+    /* Preserve the assembly's byte / four-byte exchange order without aliasing
+     * or alignment assumptions about the array's element type. */
+    size_t step = width % 4 ? 1 : 4;
+    for (size_t i = 0; i < width; i += step) {
+        unsigned char saved[4];
+        memcpy(saved, a + i, step);
+        memmove(a + i, b + i, step);
+        memcpy(b + i, saved, step);
+    }
+}
+
+void MATH_QSort(void *head, u32 num, u32 width, MATHCompareFunc comp, void *stackBuf)
+{
+    struct Range { size_t left, right; };
+    /* The smaller partition is processed first. Each additional pending range
+     * therefore halves the active population; u32 counts need at most 32 slots.
+     * Offsets, products and pointers stay native-width throughout. */
+    struct Range pending[32];
+    size_t used = 0;
+    unsigned char *base = head;
+    unsigned shift = 0;
+    (void)stackBuf;
+    if (num <= 1)
+        return;
+    assert(width != 0 && comp != NULL && head != NULL);
+    assert((size_t)num <= (size_t)-1 / width);
+    for (u32 bits = width; bits; bits >>= 1)
+        ++shift;
+    pending[used++] = (struct Range){0, (size_t)(num - 1) * width};
+    while (used) {
+        struct Range range = pending[--used];
+        size_t left = range.left, right = range.right;
+        if (right - left == width) {
+            if (comp(base + left, base + right) > 0)
+                swap(base + left, base + right, width);
+            continue;
+        }
+        size_t pivot = left + ((right - left) >> shift) * width;
+        swap(base + pivot, base + left, width);
+        size_t lo = left + width, hi = right;
+        for (;;) {
+            while (lo < right && comp(base + lo, base + left) < 0)
+                lo += width;
+            while (comp(base + hi, base + left) > 0)
+                hi -= width;
+            if (lo >= hi)
+                break;
+            swap(base + lo, base + hi, width);
+            lo += width;
+            hi -= width;
+            if (lo > hi)
+                break;
+        }
+        swap(base + left, base + hi, width);
+        struct Range lower = {left, hi >= width ? hi - width : 0};
+        struct Range upper = {hi + width, right};
+        int hasLower = hi - left > width;
+        int hasUpper = right - hi > width;
+        /* Push larger first, including the original equal-size tie rule. */
+        assert(used + hasLower + hasUpper <= 32);
+        if (hi - left > right - hi) {
+            if (hasLower) pending[used++] = lower;
+            if (hasUpper) pending[used++] = upper;
+        } else {
+            if (hasUpper) pending[used++] = upper;
+            if (hasLower) pending[used++] = lower;
+        }
+    }
 }
 #else
 asm void MATH_QSort (register void *head, register u32 num, register u32 width, register MATHCompareFunc comp, void *stackBuf)
