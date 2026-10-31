@@ -43,7 +43,6 @@ static void  INITi_CpuClear32 (u32 data, void *destp, u32 size) {}
 void MIi_UncompressBackward (void *bottom) {}
 void NitroStartUp (void) {}
 void _start_AutoloadDoneCallback (void *argv[]) {}
-void OSi_ReferSymbol (void *symbol) {}
 #else
 SDK_WEAK_SYMBOL asm void _start (void)
 {
@@ -576,10 +575,4 @@ static asm void detect_main_memory_size(void)
 
 
 
-#ifdef SDK_ARM9
-void OSi_ReferSymbol (void *symbol)
-{
-#pragma unused(symbol)
-}
-#endif
 #endif /* SDK_PORT */

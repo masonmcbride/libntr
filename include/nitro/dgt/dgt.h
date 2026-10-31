@@ -11,13 +11,13 @@ extern "C" {
 typedef struct DGTHash1Context {
 	union {
 		struct {
-			unsigned long a, b, c, d;
+			u32 a, b, c, d;
 		};
-		unsigned long state[4];
+		u32 state[4];
 	};
 	unsigned long long length;
 	union {
-		unsigned long buffer32[16];
+		u32 buffer32[16];
 		unsigned char buffer8[64];
 	};
 } DGTHash1Context;

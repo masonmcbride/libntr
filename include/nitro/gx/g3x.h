@@ -88,7 +88,7 @@ static void G3X_SetFifoIntrCond(GXFifoIntrCond cond);
 
 void G3X_SetDisp1DotDepth(fx32 w);
 
-int G3X_GetBoxTestResult(s32 * in);
+int G3X_GetBoxTestResult(u32 * in);
 int G3X_GetPositionTestResult(VecFx32 * vec, fx32 * w);
 int G3X_GetVectorTestResult(fx16 * vec);
 

@@ -55,29 +55,31 @@
 #define OS_ERR_VISITALLOCATED_INVID         "OS_VisitAllocated(): illegal arena id."
 #define OS_ERR_VISITALLOCATED_NOINFO        "OS_VisitAllocated(): heap not initialized."
 
+/* Address/range arithmetic follows native pointer width; public sizes keep
+ * their SDK contracts. The DS build retains its original u32 arithmetic. */
 #ifdef SDK_PORT
-#define OFFSET(n, a)    (((u64) (n)) & ((a) - 1))
-#define TRUNC(n, a)     (((u64) (n)) & ~((a) - 1))
-#define ROUND(n, a)     (((u64) (n) + (a) - 1) & ~((a) - 1))
+#include <stdint.h>
+typedef uintptr_t OSAllocAddress;
 #else
-#define OFFSET(n, a)    (((u32) (n)) & ((a) - 1))
-#define TRUNC(n, a)     (((u32) (n)) & ~((a) - 1))
-#define ROUND(n, a)     (((u32) (n) + (a) - 1) & ~((a) - 1))
+typedef u32 OSAllocAddress;
 #endif
+#define OFFSET(n, a) (((OSAllocAddress)(n)) & ((OSAllocAddress)(a) - 1))
+#define TRUNC(n, a) (((OSAllocAddress)(n)) & ~((OSAllocAddress)(a) - 1))
+#define ROUND(n, a) (((OSAllocAddress)(n) + (a) - 1) & ~((OSAllocAddress)(a) - 1))
 
 #define ALIGNMENT       32
 #define MINOBJSIZE      (HEADERSIZE + ALIGNMENT)
 #define HEADERSIZE      ROUND(sizeof(Cell), ALIGNMENT)
 
 #define InRange(targ, a, b)                                             \
-    ((u32)(a) <= (u32)(targ) && (u32)(targ) < (u32)(b))
+    ((OSAllocAddress)(a) <= (OSAllocAddress)(targ) && (OSAllocAddress)(targ) < (OSAllocAddress)(b))
 
 #define RangeOverlap(aStart, aEnd, bStart, bEnd)                        \
-    ((u32)(bStart) <= (u32)(aStart) && (u32)(aStart) < (u32)(bEnd) ||   \
-     (u32)(bStart) < (u32)(aEnd) && (u32)(aEnd) <= (u32)(bEnd))
+    ((OSAllocAddress)(bStart) <= (OSAllocAddress)(aStart) && (OSAllocAddress)(aStart) < (OSAllocAddress)(bEnd) ||   \
+     (OSAllocAddress)(bStart) < (OSAllocAddress)(aEnd) && (OSAllocAddress)(aEnd) <= (OSAllocAddress)(bEnd))
 
 #define RangeSubset(aStart, aEnd, bStart, bEnd)                         \
-    ((u32)(bStart) <= (u32)(aStart) && (u32)(aEnd) <= (u32)(bEnd))
+    ((OSAllocAddress)(bStart) <= (OSAllocAddress)(aStart) && (OSAllocAddress)(aEnd) <= (OSAllocAddress)(bEnd))
 
 typedef struct Cell Cell;
 typedef struct HeapDesc HeapDesc;
@@ -577,6 +579,12 @@ void * OS_InitAlloc (OSArenaId id, void * arenaStart, void * arenaEnd, int maxHe
     SDK_ASSERTMSG((char *)arenaStart < (char *)arenaEnd, OS_ERR_INITALLOC_INVRANGE);
     SDK_ASSERTMSG(maxHeaps <= ((char *)arenaEnd - (char *)arenaStart) / sizeof(HeapDesc), OS_ERR_INITALLOC_INSRANGE);
 
+#ifdef SDK_PORT
+    /* Metadata contains host pointers; an original four-byte-aligned arena
+     * need not satisfy their alignment on ARM64. Keep the adjustment inside
+     * the supplied range, before reserving the original metadata/heap array. */
+    arenaStart = (void *)ROUND(arenaStart, _Alignof(OSHeapInfo));
+#endif
     heapInfo = arenaStart;
     OSiHeapInfo[id] = heapInfo;
 
@@ -584,7 +592,7 @@ void * OS_InitAlloc (OSArenaId id, void * arenaStart, void * arenaEnd, int maxHe
     #ifdef SDK_PORT
     heapInfo->heapArray = (void *)((u64)arenaStart + sizeof(OSHeapInfo));
     #else
-    heapInfo->heapArray = (void *)((u32)arenaStart + sizeof(OSHeapInfo));
+    heapInfo->heapArray = (void *)((OSAllocAddress)arenaStart + sizeof(OSHeapInfo));
     #endif
     heapInfo->numHeaps = maxHeaps;
 
@@ -812,9 +820,9 @@ void OS_AddToHeap (OSArenaId id, OSHeapHandle heap, void * start, void * end)
 #if SDK_VERSION_MAJOR == 5
 #ifdef SDK_DEBUG
 #if defined(SDK_TWL) && !defined(SDK_TWLLTD)
-  if ((u32)start != (u32)HW_MAIN_MEM_PARAMETER_BUF &&
-      (u32)end !=
-          (u32)(HW_MAIN_MEM_PARAMETER_BUF + HW_MAIN_MEM_PARAMETER_BUF_SIZE)) {
+  if ((OSAllocAddress)start != (OSAllocAddress)HW_MAIN_MEM_PARAMETER_BUF &&
+      (OSAllocAddress)end !=
+          (OSAllocAddress)(HW_MAIN_MEM_PARAMETER_BUF + HW_MAIN_MEM_PARAMETER_BUF_SIZE)) {
 #endif
     SDK_TASSERTMSG(
         RangeSubset(start, end, heapInfo->arenaStart, heapInfo->arenaEnd),
@@ -1261,7 +1269,7 @@ BOOL OS_IsOnMainMemory(void *ptr) {
 #ifdef SDK_TWL
   if (OS_IsRunOnTwl()) {
 
-    if ((u32)ptr >= HW_TWL_MAIN_MEM && (u32)ptr < HW_TWL_MAIN_MEM_END) {
+    if ((OSAllocAddress)ptr >= HW_TWL_MAIN_MEM && (OSAllocAddress)ptr < HW_TWL_MAIN_MEM_END) {
       return TRUE;
     } else {
       return FALSE;
@@ -1270,7 +1278,7 @@ BOOL OS_IsOnMainMemory(void *ptr) {
 #endif // SDK_TWL
   {
 
-    if ((u32)ptr >= HW_MAIN_MEM && (u32)ptr < HW_MAIN_MEM_END) {
+    if ((OSAllocAddress)ptr >= HW_MAIN_MEM && (OSAllocAddress)ptr < HW_MAIN_MEM_END) {
       return TRUE;
     } else {
       return FALSE;
@@ -1283,7 +1291,7 @@ BOOL OS_IsOnExtendedMainMemory(void *ptr) {
 #ifdef SDK_TWL
   if (OS_IsRunOnTwl()) {
 
-    if ((u32)ptr >= HW_TWL_MAIN_MEM_EX && (u32)ptr < HW_TWL_MAIN_MEM_EX_END) {
+    if ((OSAllocAddress)ptr >= HW_TWL_MAIN_MEM_EX && (OSAllocAddress)ptr < HW_TWL_MAIN_MEM_EX_END) {
       return TRUE;
     } else {
       return FALSE;
@@ -1292,7 +1300,7 @@ BOOL OS_IsOnExtendedMainMemory(void *ptr) {
 #endif // SDK_TWL
   {
 
-    if ((u32)ptr >= HW_MAIN_MEM_END && (u32)ptr < HW_MAIN_MEM_EX_END) {
+    if ((OSAllocAddress)ptr >= HW_MAIN_MEM_END && (OSAllocAddress)ptr < HW_MAIN_MEM_EX_END) {
       return TRUE;
     } else {
       return FALSE;
@@ -1305,7 +1313,7 @@ BOOL OS_IsOnWramB(void *ptr) {
 #ifdef SDK_TWL
   if (OS_IsRunOnTwl()) {
 
-    if ((u32)ptr >= HW_WRAM_B && (u32)ptr < HW_WRAM_B_END) {
+    if ((OSAllocAddress)ptr >= HW_WRAM_B && (OSAllocAddress)ptr < HW_WRAM_B_END) {
       return TRUE;
     } else {
       return FALSE;
@@ -1321,7 +1329,7 @@ BOOL OS_IsOnWramC(void *ptr) {
 #ifdef SDK_TWL
   if (OS_IsRunOnTwl()) {
 
-    if ((u32)ptr >= HW_WRAM_C && (u32)ptr < HW_WRAM_C_END) {
+    if ((OSAllocAddress)ptr >= HW_WRAM_C && (OSAllocAddress)ptr < HW_WRAM_C_END) {
       return TRUE;
     } else {
       return FALSE;
@@ -1338,14 +1346,14 @@ BOOL OS_IsOnWram0(void *ptr) {
 #ifdef SDK_ARM7
   if (OS_IsRunOnTwl()) {
 #ifdef SDK_TWLLTD
-    if ((u32)ptr >= HW_WRAM_0_LTD && (u32)ptr < HW_WRAM_0_LTD_END) {
+    if ((OSAllocAddress)ptr >= HW_WRAM_0_LTD && (OSAllocAddress)ptr < HW_WRAM_0_LTD_END) {
       return TRUE;
     } else {
       return FALSE;
     }
 #else
 
-    if ((u32)ptr >= HW_WRAM_0_HYB && (u32)ptr < HW_WRAM_0_HYB_END) {
+    if ((OSAllocAddress)ptr >= HW_WRAM_0_HYB && (OSAllocAddress)ptr < HW_WRAM_0_HYB_END) {
       return TRUE;
     } else {
       return FALSE;
@@ -1359,7 +1367,7 @@ BOOL OS_IsOnWram0(void *ptr) {
 #else
 
   {
-    if ((u32)ptr >= HW_WRAM_0 && (u32)ptr < HW_WRAM_0_END) {
+    if ((OSAllocAddress)ptr >= HW_WRAM_0 && (OSAllocAddress)ptr < HW_WRAM_0_END) {
       return TRUE;
     } else {
       return FALSE;
@@ -1375,14 +1383,14 @@ BOOL OS_IsOnWram1(void *ptr) {
 #ifdef SDK_ARM7
   if (OS_IsRunOnTwl()) {
 #ifdef SDK_TWLLTD
-    if ((u32)ptr >= HW_WRAM_1_LTD && (u32)ptr < HW_WRAM_1_LTD_END) {
+    if ((OSAllocAddress)ptr >= HW_WRAM_1_LTD && (OSAllocAddress)ptr < HW_WRAM_1_LTD_END) {
       return TRUE;
     } else {
       return FALSE;
     }
 #else
 
-    if ((u32)ptr >= HW_WRAM_1_HYB && (u32)ptr < HW_WRAM_1_HYB_END) {
+    if ((OSAllocAddress)ptr >= HW_WRAM_1_HYB && (OSAllocAddress)ptr < HW_WRAM_1_HYB_END) {
       return TRUE;
     } else {
       return FALSE;
@@ -1396,7 +1404,7 @@ BOOL OS_IsOnWram1(void *ptr) {
 #else
 
   {
-    if ((u32)ptr >= HW_WRAM_1 && (u32)ptr < HW_WRAM_1_END) {
+    if ((OSAllocAddress)ptr >= HW_WRAM_1 && (OSAllocAddress)ptr < HW_WRAM_1_END) {
       return TRUE;
     } else {
       return FALSE;
@@ -1414,7 +1422,7 @@ BOOL OS_IsOnWram(void *ptr) {
 
 BOOL OS_IsOnVram(void *ptr) {
 #ifdef SDK_ARM9
-  if ((u32)ptr >= HW_PLTT && (u32)ptr < HW_DB_OAM_END) {
+  if ((OSAllocAddress)ptr >= HW_PLTT && (OSAllocAddress)ptr < HW_DB_OAM_END) {
     return TRUE;
   }
 #else
@@ -1431,7 +1439,7 @@ BOOL OS_IsOnDtcm(void *ptr) {
   dtcm = OS_GetDTCMAddress();
   dtcm_end = dtcm + HW_DTCM_SIZE;
 
-  if ((u32)ptr >= dtcm && (u32)ptr < dtcm_end) {
+  if ((OSAllocAddress)ptr >= dtcm && (OSAllocAddress)ptr < dtcm_end) {
     return TRUE;
   }
 #else
@@ -1448,7 +1456,7 @@ BOOL OS_IsOnItcm(void *ptr) {
   itcm = OS_GetITCMAddress();
   itcm_end = itcm + HW_ITCM_SIZE;
 
-  if ((u32)ptr >= itcm && (u32)ptr < itcm_end) {
+  if ((OSAllocAddress)ptr >= itcm && (OSAllocAddress)ptr < itcm_end) {
     return TRUE;
   }
 #else
@@ -1463,14 +1471,14 @@ BOOL OS_IsOnWramA(void *ptr) {
   if (OS_IsRunOnTwl()) {
 #ifdef SDK_TWLLTD
 
-    if ((u32)ptr >= HW_WRAM_A_LTD && (u32)ptr < HW_WRAM_A_LTD_END) {
+    if ((OSAllocAddress)ptr >= HW_WRAM_A_LTD && (OSAllocAddress)ptr < HW_WRAM_A_LTD_END) {
       return TRUE;
     } else {
       return FALSE;
     }
 #else
 
-    if ((u32)ptr >= HW_WRAM_A_HYB && (u32)ptr < HW_WRAM_A_HYB_END) {
+    if ((OSAllocAddress)ptr >= HW_WRAM_A_HYB && (OSAllocAddress)ptr < HW_WRAM_A_HYB_END) {
       return TRUE;
     } else {
       return FALSE;
@@ -1491,7 +1499,7 @@ BOOL OS_IsOnWramA(void *ptr) {
 
 BOOL OS_IsOnArm7PrvWram(void *ptr) {
 #ifdef SDK_ARM7
-  if ((u32)ptr >= HW_PRV_WRAM && (u32)ptr < HW_PRV_WRAM_END) {
+  if ((OSAllocAddress)ptr >= HW_PRV_WRAM && (OSAllocAddress)ptr < HW_PRV_WRAM_END) {
     return TRUE;
   }
 #else

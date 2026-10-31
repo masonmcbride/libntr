@@ -20,7 +20,7 @@ static inline void CP_CalcSquareRootInSoftware (u64 param, u8 is64Bits)
     u64 val;
     u32 res = 0;
     u64 rem = 0;
-    u32 prod = 0;
+    u64 prod = 0;
     u32 nbits, topshift;
 
     if (is64Bits)
@@ -42,7 +42,7 @@ static inline void CP_CalcSquareRootInSoftware (u64 param, u8 is64Bits)
         val <<= 2;
         res <<= 1;
 
-        prod = (res << 1) + 1;
+        prod = ((u64)res << 1) + 1;
         if (rem >= prod)
         {
             rem -= prod;
@@ -59,7 +59,14 @@ static inline void CP_SetSqrtImm64_NS_ (u64 param)
 	*((REGType64 *)REG_SQRT_PARAM_ADDR) = param;
 
 	#ifndef SDK_BUILD_ARM
+#ifdef SDK_PORT
+    /* A parameter write launches using the current SQRTCNT mode. A 32-bit
+     * write preserves the high half of the parameter register in 64-bit mode. */
+    CP_CalcSquareRootInSoftware(*((REGType64 *)REG_SQRT_PARAM_ADDR),
+        (reg_CP_SQRTCNT & (1u << REG_CP_SQRTCNT_MODE_SHIFT)) != 0);
+#else
 	CP_CalcSquareRootInSoftware(param, TRUE);
+#endif
 	#endif
 }
 static inline void CP_SetSqrtImm32_NS_ (u32 param)
@@ -67,18 +74,33 @@ static inline void CP_SetSqrtImm32_NS_ (u32 param)
 	*((REGType32 *)REG_SQRT_PARAM_ADDR) = param;
 
 	#ifndef SDK_BUILD_ARM
+#ifdef SDK_PORT
+    /* A parameter write launches using the current SQRTCNT mode. A 32-bit
+     * write preserves the high half of the parameter register in 64-bit mode. */
+    CP_CalcSquareRootInSoftware(*((REGType64 *)REG_SQRT_PARAM_ADDR),
+        (reg_CP_SQRTCNT & (1u << REG_CP_SQRTCNT_MODE_SHIFT)) != 0);
+#else
 	CP_CalcSquareRootInSoftware(param, FALSE);
+#endif
 	#endif
 }
 
 static inline void CP_SetSqrtImm64 (u64 param)
 {
+#ifdef SDK_PORT
+    CP_SetSqrtImm64_NS_(param);
+#else
 	*((REGType64 *)REG_SQRT_PARAM_ADDR) = param;
+#endif
 }
 
 static inline void CP_SetSqrtImm32 (u32 param)
 {
+#ifdef SDK_PORT
+    CP_SetSqrtImm32_NS_(param);
+#else
 	*((REGType32 *)REG_SQRT_PARAM_ADDR) = param;
+#endif
 }
 
 static inline void CP_SetSqrt64 (u64 param)

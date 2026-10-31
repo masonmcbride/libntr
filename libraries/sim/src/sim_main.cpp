@@ -116,10 +116,7 @@ u8 objWindowsTex[4 * SIM_NDS_SCREEN_WIDTH * SIM_NDS_SCREEN_HEIGHT * 2];
 u32 OBJLine[2][256];
 u8 OBJWindow[2][256];
 
-GXVRamTex s_SIM_GXVRamTex;
-GXVRamTexPltt s_SIM_GXVRamTexPltt;
-GXVRamBGExtPltt s_SIM_GXBgExtPltt;
-GXVRamSubBGExtPltt s_SIM_GXSubBgExtPltt;
+// GX bank selections are owned by sim_vars.c; declarations are in sim.h.
 
 // 4MB! can we reduce this?
 u8 s_SIM_g3tex[4 * 1024 * 1024];

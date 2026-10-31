@@ -51,9 +51,10 @@ extern REGType16v s_reg_G2S_DB_WIN1V;
 extern REGType16v s_reg_G2S_DB_WININ;
 extern REGType16v s_reg_G2S_DB_WINOUT;
 extern REGType16v s_reg_G2S_DB_MOSAIC;
-extern REGType16v s_reg_G2S_DB_BLDCNT;
-extern REGType16v s_reg_G2S_DB_BLDALPHA;
-extern REGType16v s_reg_G2S_DB_BLDY;
+extern REGType16v s_reg_G2S_BLEND[3];
+#define s_reg_G2S_DB_BLDCNT s_reg_G2S_BLEND[0]
+#define s_reg_G2S_DB_BLDALPHA s_reg_G2S_BLEND[1]
+#define s_reg_G2S_DB_BLDY s_reg_G2S_BLEND[2]
 
 
 /* DB_BG0CNT */

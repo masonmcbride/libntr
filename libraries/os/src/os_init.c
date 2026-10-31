@@ -219,3 +219,12 @@ void OSi_InitCommon(void) {
 }
 #pragma profile reset
 #endif
+
+#if defined(SDK_ARM9) || defined(SDK_PORT)
+/* Original SDK metadata marker: the caller retains the referenced symbol.
+ * It intentionally has no runtime effect and does not require CRT startup. */
+void OSi_ReferSymbol(const void *symbol)
+{
+    (void)symbol;
+}
+#endif

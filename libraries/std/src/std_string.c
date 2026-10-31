@@ -78,9 +78,9 @@ char * STD_SearchString (const char * srcp, const char * str)
     return NULL;
 }
 
-int STD_GetStringLength (const char * str)
+u32 STD_GetStringLength (const char * str)
 {
-    int n = 0;
+    u32 n = 0;
     while (str[n]) {
         n++;
     }

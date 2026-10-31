@@ -21,7 +21,7 @@ extern char * STD_CopyString(char * destp, const char * srcp);
 extern int STD_CopyLStringZeroFill(char * destp, const char * srcp, int n);
 extern int STD_CopyLString(char * destp, const char * srcp, int siz);
 extern char * STD_SearchString(const char * srcp, const char * str);
-extern int STD_GetStringLength(const char * str);
+extern u32 STD_GetStringLength(const char * str);
 extern char * STD_ConcatenateString(char * str1, const char * str2);
 extern int STD_CompareString(const char * str1, const char * str2);
 extern int STD_CompareNString(const char * str1, const char * str2, int len);

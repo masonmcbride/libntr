@@ -52,9 +52,10 @@ extern REGType16v s_reg_G2_WIN1V;
 extern REGType16v s_reg_G2_WININ;
 extern REGType16v s_reg_G2_WINOUT;
 extern REGType16v s_reg_G2_MOSAIC;
-extern REGType16v s_reg_G2_BLDCNT;
-extern REGType16v s_reg_G2_BLDALPHA;
-extern REGType16v s_reg_G2_BLDY;
+extern REGType16v s_reg_G2_BLEND[3];
+#define s_reg_G2_BLDCNT s_reg_G2_BLEND[0]
+#define s_reg_G2_BLDALPHA s_reg_G2_BLEND[1]
+#define s_reg_G2_BLDY s_reg_G2_BLEND[2]
 
 
 /* BG0CNT */

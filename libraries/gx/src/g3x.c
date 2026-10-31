@@ -345,14 +345,14 @@ void G3X_SetDisp1DotDepth (fx32 w)
 	reg_G3X_DISP_1DOT_DEPTH = (u16)((w >> 9) & 0x7fff);
 }
 
-int G3X_GetBoxTestResult (s32 *in)
+int G3X_GetBoxTestResult (u32 *in)
 {
 	SDK_NULL_ASSERT(in);
 
 	if (reg_G3X_GXSTAT & REG_G3X_GXSTAT_TB_MASK)
 		return -1;
 	else {
-		*in = (s32)(reg_G3X_GXSTAT & REG_G3X_GXSTAT_TR_MASK);
+		*in = (u32)(reg_G3X_GXSTAT & REG_G3X_GXSTAT_TR_MASK);
 		return 0;
 	}
 }

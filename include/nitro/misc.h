@@ -182,7 +182,7 @@ extern "C" {
     #endif
 #endif
 
-void OSi_ReferSymbol(void * symbol);
+void OSi_ReferSymbol(const void * symbol);
 
 #define SDK_REFER_SYMBOL(symbol) OSi_ReferSymbol((void *)(symbol))
 #define SDK_MIDDLEWARE_STRING(vender, module) "[SDK+" vender ":" module "]"

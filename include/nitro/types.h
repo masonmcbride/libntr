@@ -123,7 +123,9 @@ typedef vu64 REGType64v;
     #define SDK_WEAK_SYMBOL
 #endif
 
-#ifdef SDK_CW_FORCE_EXPORT_SUPPORT
+#if defined(SDK_PORT)
+    #define SDK_FORCE_EXPORT __attribute__((used))
+#elif defined(SDK_CW_FORCE_EXPORT_SUPPORT)
     #define SDK_FORCE_EXPORT __declspec(force_export)
 #else
     #define SDK_FORCE_EXPORT

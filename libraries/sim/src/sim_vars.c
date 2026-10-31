@@ -1,5 +1,12 @@
 #include <nitro/os/common/arena.h>
 #include <nitro/spi/ARM9/tp.h>
+#include <nitro/gx/gx_vramcnt.h>
+
+/* Shared GX state is independent of the rendering backend. */
+GXVRamTex s_SIM_GXVRamTex;
+GXVRamTexPltt s_SIM_GXVRamTexPltt;
+GXVRamBGExtPltt s_SIM_GXBgExtPltt;
+GXVRamSubBGExtPltt s_SIM_GXSubBgExtPltt;
 #define HW_MAIN_MEM_SYSTEM_SIZE         0x400
 
 u32 SDK_AUTOLOAD_DTCM_START[2];
@@ -60,9 +67,9 @@ REGType16v s_reg_G2_WIN1V;
 REGType16v s_reg_G2_WININ;
 REGType16v s_reg_G2_WINOUT;
 REGType16v s_reg_G2_MOSAIC;
-REGType16v s_reg_G2_BLDCNT;
-REGType16v s_reg_G2_BLDALPHA;
-REGType16v s_reg_G2_BLDY;
+_Alignas(4) REGType16v s_reg_G2_BLEND[3];
+
+
 
 //ioreg_G2S
 REGType16v s_reg_G2S_DB_BG0CNT;
@@ -100,9 +107,9 @@ REGType16v s_reg_G2S_DB_WIN1V;
 REGType16v s_reg_G2S_DB_WININ;
 REGType16v s_reg_G2S_DB_WINOUT;
 REGType16v s_reg_G2S_DB_MOSAIC;
-REGType16v s_reg_G2S_DB_BLDCNT;
-REGType16v s_reg_G2S_DB_BLDALPHA;
-REGType16v s_reg_G2S_DB_BLDY;
+_Alignas(4) REGType16v s_reg_G2S_BLEND[3];
+
+
 
 //ioreg_G3
 REGType32v s_reg_G3_MTX_MODE;
