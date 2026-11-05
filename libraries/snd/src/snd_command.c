@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <nitro/snd/common/command.h>
 
 #include <nitro/misc.h>
@@ -506,7 +507,11 @@ void SND_CommandProc (void)
                 break;
             case SND_COMMAND_SETUP_CHANNEL_PCM:
                 SND_SetupChannelPcm((int)UNPACK_COMMAND(command.arg[0], 0, 16),
+                                    #if defined(SDK_PORT) && defined(SDK_64BIT)
+                                    (const void *)(uintptr_t)command.arg[1],
+#else
                                     (const void *)UNPACK_COMMAND(command.arg[1], 0, 27),
+#endif
                                     (SNDWaveFormat)UNPACK_COMMAND(command.arg[3], 24, 2),
                                     (SNDChannelLoop)UNPACK_COMMAND(command.arg[3], 26, 2),
                                     (int)UNPACK_COMMAND(command.arg[3], 0, 16),
