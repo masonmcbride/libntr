@@ -454,6 +454,7 @@ void HandleCommandMessage(draw_msg_t *msg) {
     msg->data.xyz.z = ((temp >> 20) & 0b1111111111) << 6;
     SIM_HandleG3Command(msg);
     break;
+  case DRAW_CMD_G3_VTX:
   case DRAW_CMD_G3_VTX16:
     prevXYZ.x = msg->data.xyz.x;
     prevXYZ.y = msg->data.xyz.y;
@@ -548,21 +549,47 @@ void HandleCommandMessage(draw_msg_t *msg) {
     G3SIM_SpecEmi(msg->data.numU32);
     break;
   case DRAW_CMD_G3_DIRECT0:
+#ifdef SDK_NATIVE_G3
+    if(!G3Native_Execute(msg->data.numU32,nullptr,0))std::abort();
+    break;
+#endif
     msg->type = DecodeG3Op(msg->data.numU32);
     SIM_HandleG3Command(msg);
     break;
   case DRAW_CMD_G3_DIRECT1:
+#ifdef SDK_NATIVE_G3
+    { u32 p=msg->data.numsU64[1];
+      if(!G3Native_Execute(msg->data.numsU64[0],&p,1))std::abort(); }
+    break;
+#endif
     msg->type = DecodeG3Op(msg->data.numsU64[0]);
     // Get the parameter in the right place
     ConvertMsgParams(msg);
     SIM_HandleG3Command(msg);
     break;
+#ifdef SDK_NATIVE_G3
+  case DRAW_CMD_G3_END:
+    G3Native_End(); break;
+  case DRAW_CMD_G3_SHININESS:
+    G3Native_Shininess(msg->data.numsU32); break;
+  case DRAW_CMD_G3_POSITIONTEST:
+    G3Native_PositionTest(msg->data.xyz.x,msg->data.xyz.y,msg->data.xyz.z); break;
+  case DRAW_CMD_G3_VECTORTEST:
+    G3Native_VectorTest(msg->data.numU32); break;
+#endif
   case DRAW_CMD_G3_SWAPBUFFERS: {
+#ifdef SDK_NATIVE_G3
+    G3Native_Swap(msg->data.numU32);
+#else
     u8 depthBufferMode = (msg->data.numU32 & 2) >> 1;
     G3SIM_SwapBuffers(
         depthBufferMode); // TODO: add flush attributes here for Z/W-buffering!
+  #endif
   } break;
   case DRAW_CMD_G3_VIEWPORT:
+#ifdef SDK_NATIVE_G3
+    G3Native_Viewport(msg->data.numU32);
+#endif
     // TODO
     break;
   case DRAW_CMD_G3_TEXPLTTBASE:
@@ -575,6 +602,14 @@ void HandleCommandMessage(draw_msg_t *msg) {
                   msg->data.boxtest.depth);
     break;
   case DRAW_CMD_G3_CMD_LIST:
+#ifdef SDK_NATIVE_G3
+    {
+      int ok=G3Native_CommandList(msg->data.ptr,msg->size);
+      free(msg->data.ptr);
+      if(!ok) std::abort();
+    }
+    break;
+#endif
     // Process a command List
     {
       G3SIM_CommandBlock_t *cmdBlockPtr;

@@ -1,4 +1,8 @@
+#ifndef SDK_NATIVE_G3
 #include <simulator/sim_opengl.h>
+#else
+typedef float GLfloat;
+#endif
 #include <nitro/types.h>
 
 #ifndef SIM_G3_DRAW_H

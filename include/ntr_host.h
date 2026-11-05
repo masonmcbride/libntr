@@ -41,3 +41,32 @@ int HG_ShowMessage(const char *title, const char *message);
 #endif
 
 #endif
+
+/* Native fixed-point geometry handoff. The host retains no caller pointers.
+ * One submission is a whole frame; no per-polygon GPU submissions/readbacks. */
+#ifndef NTR_HOST_G3_H
+#define NTR_HOST_G3_H
+#include <stddef.h>
+#include <simulator/g3_native_math.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
+typedef struct {
+    uint32_t first, count, polygon, texture, palette, viewport, control, wbuffer;
+} HG_G3Draw;
+typedef struct {
+    uint32_t clear_color, clear_depth, banks[7], toon[32];
+    uint32_t alpha_ref, fog_color, fog_offset, fog[32];
+} HG_G3Registers;
+int HG_G3Submit(const G3NativeVertex *vertices, size_t vertex_count,
+                const HG_G3Draw *draws, size_t draw_count,
+                const uint8_t *vram, size_t vram_size,
+                const HG_G3Registers *registers);
+/* Explicit diagnostic boundary only; waits for the last frame. Not called by
+ * handlers or VBlank. Returns 0 on absence or GPU execution failure. */
+int HG_G3Readback(uint8_t *rgba, size_t row_stride);
+uint64_t HG_G3SubmittedFrames(void);
+#ifdef __cplusplus
+}
+#endif
+#endif

@@ -3,7 +3,11 @@
 #include <nitro/hw/X86/mmap_shared.h>
 #include <nitro/fx/fx.h>
 #include <nitro/fx/fx_const.h>
+#ifndef SDK_NATIVE_G3
 #include <simulator/sim_opengl.h>
+#else
+typedef float GLfloat;
+#endif
 
 #ifndef SIM_G3_HANDLER_H
 #define SIM_G3_HANDLER_H
@@ -74,6 +78,10 @@ typedef struct {
     GLfloat g;
     GLfloat b;
     GLfloat a;
+#ifdef SDK_NATIVE_G3
+    s32 native_texcoord[2];
+    s32 native_color[3];
+#endif
 } G3SIM_FxVtx_t;
 
 #ifdef __cplusplus
@@ -137,6 +145,18 @@ void G3SIM_TexCoord(u32 data);
 void G3SIM_TexImageParam(u32 data);
 void G3SIM_TexPlttBase(u32 data);
 void G3SIM_Vtx(s16 x, s16 y, s16 z);
+
+#ifdef SDK_NATIVE_G3
+void G3Native_Viewport(u32 data);
+void G3Native_Shininess(const u32 *data);
+void G3Native_PositionTest(s16 x, s16 y, s16 z);
+void G3Native_VectorTest(u32 data);
+void G3Native_End(void);
+void G3Native_RenderFrame(void);
+void G3Native_Reset(void);
+void G3Native_Swap(u32 data);
+int G3Native_CommandList(const void *data, size_t size);
+#endif
 
 // Not GPU Commands
 int G3SIM_ClipPolygon(fx32 verts[][4], int nVerts, int clipStart, BOOL attribs);

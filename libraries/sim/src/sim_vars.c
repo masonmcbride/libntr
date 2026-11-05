@@ -171,6 +171,7 @@ REGType16v s_reg_G3X_CLEAR_DEPTH;
 REGType16v s_reg_G3X_CLRIMAGE_OFFSET;
 REGType32v s_reg_G3X_FOG_COLOR;
 REGType16v s_reg_G3X_FOG_OFFSET;
+#ifndef SDK_NATIVE_G3
 REGType32v s_reg_G3X_FOG_TABLE_0;
 REGType16v s_reg_G3X_FOG_TABLE_0_L;
 REGType16v s_reg_G3X_FOG_TABLE_0_H;
@@ -243,6 +244,9 @@ REGType16v s_reg_G3X_TOON_TABLE_14_H;
 REGType32v s_reg_G3X_TOON_TABLE_15;
 REGType16v s_reg_G3X_TOON_TABLE_15_L;
 REGType16v s_reg_G3X_TOON_TABLE_15_H;
+#else
+REGType32v s_g3NativeTables[24];
+#endif
 REGType32v s_reg_G3X_GXFIFO;
 REGType32v s_reg_G3X_GXSTAT;
 REGType16v s_reg_G3X_LISTRAM_COUNT;
@@ -255,6 +259,7 @@ REGType32v s_reg_G3X_POS_RESULT_W;
 REGType16v s_reg_G3X_VEC_RESULT_X;
 REGType16v s_reg_G3X_VEC_RESULT_Y;
 REGType16v s_reg_G3X_VEC_RESULT_Z;
+#ifndef SDK_NATIVE_G3
 REGType32v s_reg_G3X_CLIPMTX_RESULT_0;
 REGType32v s_reg_G3X_CLIPMTX_RESULT_1;
 REGType32v s_reg_G3X_CLIPMTX_RESULT_2;
@@ -280,6 +285,9 @@ REGType32v s_reg_G3X_VECMTX_RESULT_5;
 REGType32v s_reg_G3X_VECMTX_RESULT_6;
 REGType32v s_reg_G3X_VECMTX_RESULT_7;
 REGType32v s_reg_G3X_VECMTX_RESULT_8;
+#else
+REGType32v s_g3NativeMatrices[25];
+#endif
 
 
 //ioreg_GX

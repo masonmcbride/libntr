@@ -132,6 +132,9 @@ extern "C" {
 #endif
 
 void SIM_HandleG3Command(draw_msg_t * msg);
+#ifdef SDK_NATIVE_G3
+int G3Native_Execute(u32 op, const u32 *params, size_t count);
+#endif
 
 #ifdef __cplusplus
 }

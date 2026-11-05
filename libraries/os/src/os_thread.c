@@ -568,8 +568,13 @@ void OS_CreateThread (OSThread * thread, void (*func)(void *), void * arg, void 
 #endif
     OSi_InsertThreadToList(thread);
 
+#ifdef SDK_PORT
+    thread->stackBottom = (u64)stack;
+    thread->stackTop = (u64)stack - stackSize;
+#else
     thread->stackBottom = (u32)stack;
     thread->stackTop = (u32)stack - stackSize;
+#endif
     thread->stackWarningOffset = 0;
 
     #ifndef SDK_PORT

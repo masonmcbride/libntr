@@ -356,6 +356,9 @@ void OS_WaitIrq (BOOL clear, OSIrqMask irqFlags)
         SIM_PreRenderVBlank();
         SIM_Render(NULL);
         SIM_PostRenderVBlank();
+#ifdef SDK_NATIVE_G3
+        (void)OS_RestoreInterrupts(enabled);
+#endif
         return;
     }
     #endif
