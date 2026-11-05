@@ -162,14 +162,20 @@ void PXI_SetFifoSendCallback (PXIFifoEmtpyCallback callback)
 
 int PXI_SendWordByFifo (int fifotag, uPtr data, BOOL err)
 {
+#ifndef SDK_PORT
     PXIFifoMessage fifomsg;
+#endif
 
     SDK_ASSERTMSG(0 <= fifotag && fifotag < PXI_MAX_FIFO_TAG, "[FifoTag] out of range");
+#ifndef SDK_PORT
     SDK_ASSERTMSG(data < (1UL << PXI_FIFOMESSAGE_BITSZ_DATA), "[data] out of range");
+#endif
 
+#ifndef SDK_PORT
     fifomsg.e.tag = (PXIFifoTag)fifotag;
     fifomsg.e.err = (u32)err;
     fifomsg.e.data = data;
+#endif
 
     #ifdef SDK_PORT
     WIN_PXIFifoMessage * fifoMsgPtr;
@@ -188,14 +194,8 @@ int PXI_SendWordByFifo (int fifotag, uPtr data, BOOL err)
 #ifdef SDK_PORT
 int PXI_SendWordByFifo7(int fifotag, uPtr data, BOOL err)
 {
-    PXIFifoMessage fifomsg;
-
     SDK_ASSERTMSG(0 <= fifotag && fifotag < PXI_MAX_FIFO_TAG, "[FifoTag] out of range");
-    SDK_ASSERTMSG(data < (1UL << PXI_FIFOMESSAGE_BITSZ_DATA), "[data] out of range");
-
-    fifomsg.e.tag = (PXIFifoTag)fifotag;
-    fifomsg.e.err = (u32)err;
-    fifomsg.e.data = data;
+    /* SDK_PORT transports a native-width simulator payload. */
 
     WIN_PXIFifoMessage * fifoMsgPtr;
     fifoMsgPtr = malloc( sizeof( WIN_PXIFifoMessage ) );
