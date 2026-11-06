@@ -1,3 +1,6 @@
+#if defined(SDK_PORT)
+#include <ntr_host.h>
+#endif
 #if SDK_VERSION_MAJOR == 5
 #include <nitro/misc.h>
 #include <nitro/types.h>
@@ -296,6 +299,23 @@ void FS_ClearOverlayImage (FSOverlayInfo *p_ovi)
 
     BOOL FS_LoadOverlayImageAsync (FSOverlayInfo *p_ovi, FSFile *p_file)
     {
+
+#if defined(SDK_PORT)
+    HG_OverlayImage *native = HG_GetOverlayImage(p_ovi->header.id);
+    if (native) {
+        /*
+         * The host image was mapped and validated by dyld.
+         * Complete the original FS request without a ROM transfer.
+         */
+        FS_InitFile(p_file);
+        p_file->pcFilePtr = NULL;
+        p_file->stat |= FS_FILE_STATUS_IS_FILE;
+        p_file->error = HG_LoadOverlayImage(native)
+            ? FS_RESULT_SUCCESS : FS_RESULT_FAILURE;
+        return p_file->error == FS_RESULT_SUCCESS;
+    }
+#endif
+
         FS_InitFile(p_file);
 
         if (!FS_OpenFileFast(p_file, FS_GetOverlayFileID(p_ovi))) {
@@ -315,6 +335,13 @@ void FS_ClearOverlayImage (FSOverlayInfo *p_ovi)
 
     BOOL FS_LoadOverlayImage (FSOverlayInfo *p_ovi)
     {
+
+#if defined(SDK_PORT)
+    HG_OverlayImage *native = HG_GetOverlayImage(p_ovi->header.id);
+    if (native)
+        return HG_LoadOverlayImage(native) ? TRUE : FALSE;
+#endif
+
         FSFile p_file[1];
         FS_InitFile(p_file);
 
@@ -385,6 +412,20 @@ static BOOL FSi_CompareDigest (const u8 *spec_digest, void *src, int len
 
 void FS_StartOverlay (FSOverlayInfo *p_ovi)
 {
+
+#if defined(SDK_PORT)
+    HG_OverlayImage *native = HG_GetOverlayImage(p_ovi->header.id);
+    if (native) {
+        /*
+         * Execute the preserved native overlay initializer table.
+         * Do not read ARM overlay addresses or run it twice.
+         */
+        if (!HG_StartOverlayImage(native))
+            OS_TPanic("Native overlay start failed");
+        return;
+    }
+#endif
+
     #if SDK_VERSION_MAJOR == 4
 	u32 rare_size = FSi_GetOverlayBinarySize(p_ovi);
 
@@ -502,7 +543,10 @@ void FS_StartOverlay (FSOverlayInfo *p_ovi)
 
 void FS_EndOverlay (FSOverlayInfo *p_ovi)
 {
-	for (;;) {
+	#if defined(SDK_PORT)
+    HG_OverlayImage *native = HG_GetOverlayImage(p_ovi->header.id);
+#endif
+    for (;;) {
 		MWiDestructorChain *head = NULL, *tail = NULL;
 		const u32 region_top = (u32)FS_GetOverlayAddress(p_ovi);
 		const u32 region_bottom = region_top + FS_GetOverlayTotalSize(p_ovi);
@@ -518,8 +562,25 @@ void FS_EndOverlay (FSOverlayInfo *p_ovi)
 				const u32 dtor = (u32)p->dtor;
 				const u32 obj = (u32)p->obj;
 
-				if (((obj == 0) && (dtor >= region_top) && (dtor < region_bottom)) ||
-				    ((obj >= region_top) && (obj < region_bottom))) {
+#if defined(SDK_PORT)
+                /*
+                 * Preserve Nintendo's destructor-chain traversal.
+                 * Only the overlay ownership predicate changes:
+                 * native Mach-O addresses cannot be represented by u32.
+                 */
+                const BOOL belongs = native
+                    ? ((p->obj == NULL)
+                           ? HG_OverlayOwnsAddress(
+                                 native, (const void *)(uintptr_t)p->dtor)
+                           : HG_OverlayOwnsAddress(native, p->obj))
+                    : (((obj == 0) && (dtor >= region_top) &&
+                        (dtor < region_bottom)) ||
+                       ((obj >= region_top) && (obj < region_bottom)));
+                if (belongs) {
+#else
+if (((obj == 0) && (dtor >= region_top) && (dtor < region_bottom)) ||
+    ((obj >= region_top) && (obj < region_bottom))) {
+#endif
 
 					if (!tail) {
 						head = p;
@@ -568,8 +629,18 @@ void FS_EndOverlay (FSOverlayInfo *p_ovi)
 
 BOOL FS_UnloadOverlayImage (FSOverlayInfo *p_ovi)
 {
-	FS_EndOverlay(p_ovi);
-	return TRUE;
+#if defined(SDK_PORT)
+    HG_OverlayImage *image = HG_GetOverlayImage(p_ovi->header.id);
+    if (image) {
+        /* Reject invalid transitions before running destructors. */
+        if (!HG_OverlayCanUnload(image))
+            return FALSE;
+        FS_EndOverlay(p_ovi);
+        return HG_UnloadOverlayImage(image) ? TRUE : FALSE;
+    }
+#endif
+    FS_EndOverlay(p_ovi);
+    return TRUE;
 }
 
 #if defined(FS_IMPLEMENT)

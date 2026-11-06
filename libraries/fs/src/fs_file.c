@@ -20,6 +20,8 @@
 #include <string.h>
 #include <ctype.h>
 #include <ntr_host.h>
+#include <stdio.h>
+extern FILE *HG_OpenResource(const char *path);
 #include <simulator/sim_RomExtractor.h>
 #endif
 
@@ -505,58 +507,32 @@ BOOL FS_OpenFile (FSFile *p_file, const char *path)
 	#endif
 	FSFileID id;
 	#ifdef SDK_PORT
-	if(path[0] == 'r'
-		&& path[1] == 'o'
-	&& path[2] == 'm'
-	&& path[3] == ':'
-	&& strlen(path) > 4) {
-		path = path+4;
-	}
-	if( path[0] == '/')
-	{
-		path = path + 1;
-	}
-	p_file->pcFilePtr = NULL;
-	p_file->pcFilePtr = fopen(path, "rb");
-	if(p_file->pcFilePtr == NULL) {
-		// Try opening with lowercase path
-		char * lowercasePath = malloc(sizeof(char) * strlen(path) + 1);
-		memset(lowercasePath, 0, sizeof(char) * strlen(path) + 1);
-		strcpy(lowercasePath, path);
-		for(int i=0; i < strlen(path); i++) {
-			lowercasePath[i] = tolower(path[i]);
-		}
-		p_file->pcFilePtr = fopen(lowercasePath, "rb");
-		free(lowercasePath);
-	}
-	if( p_file->pcFilePtr != NULL )
-	{
-		p_file->stat |= FS_FILE_STATUS_IS_FILE;
-		p_file->stat &= ~FS_FILE_STATUS_IS_DIR;
-		u32 fileSize;
-		fseek(p_file->pcFilePtr, 0, SEEK_END);
-		fileSize = ftell(p_file->pcFilePtr);
-		fseek(p_file->pcFilePtr, 0, SEEK_SET);
-		p_file->prop.file.top = 0;
-		p_file->prop.file.bottom = fileSize;
-		return TRUE;
-	}
-	else
-	{
-        #if FS_FILE_OPEN_DEBUG
-        char messageBuf[200] = {0};
-        snprintf(messageBuf, 199, "Failed to open file '%s'.", path);
-        HG_ShowMessage("ROM Extraction Required", messageBuf);
-        #else
-        HG_ShowMessage("ROM Extraction Required", "ROM filesystem is missing. Select 'OK' and choose a NDS ROM file in the next step.");
-        #endif
+    /*
+     * Native resource namespace: generated assets first, then original
+     * extracted assets. Missing paths fail without UI or recursion.
+     */
+    p_file->pcFilePtr = HG_OpenResource(path);
+    if (!p_file->pcFilePtr)
+        return FALSE;
 
-        SIM_ShowRomExtractionDialog();
+    if (fseek(p_file->pcFilePtr, 0, SEEK_END) != 0) {
+        fclose(p_file->pcFilePtr);
+        p_file->pcFilePtr = NULL;
+        return FALSE;
+    }
+    long length = ftell(p_file->pcFilePtr);
+    if (length < 0 || (unsigned long)length > UINT32_MAX ||
+        fseek(p_file->pcFilePtr, 0, SEEK_SET) != 0) {
+        fclose(p_file->pcFilePtr);
+        p_file->pcFilePtr = NULL;
+        return FALSE;
+    }
 
-        // try again, because the ROM should be extracted at this point
-        // yes, this is recursive, so if the user is dumb enough to keep extracting the wrong ROM and does this enough times, it will crash
-        return FS_OpenFile(p_file, path);
-	}
+    p_file->stat |= FS_FILE_STATUS_IS_FILE;
+    p_file->stat &= ~FS_FILE_STATUS_IS_DIR;
+    p_file->prop.file.top = 0;
+    p_file->prop.file.bottom = (u32)length;
+    return TRUE;
 	#else
 	return (FS_ConvertPathToFileID(&id, path) && FS_OpenFileFast(p_file, id));
 	#endif

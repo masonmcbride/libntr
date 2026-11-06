@@ -17,6 +17,14 @@ typedef uint64_t HG_ThreadID;
 typedef struct HG_Window HG_Window;
 typedef struct HG_AudioStream HG_AudioStream;
 
+/* Native overlay lifecycle services; implemented by the host. */
+typedef struct HG_OverlayImage HG_OverlayImage;
+HG_OverlayImage *HG_GetOverlayImage(uint32_t id);
+int HG_LoadOverlayImage(HG_OverlayImage *image);
+int HG_StartOverlayImage(HG_OverlayImage *image);
+int HG_OverlayCanUnload(const HG_OverlayImage *image);
+int HG_OverlayOwnsAddress(const HG_OverlayImage *image, const void *address);
+int HG_UnloadOverlayImage(HG_OverlayImage *image);
 HG_Thread *HG_CreateThread(int (*entry)(void *), const char *name, void *arg);
 HG_ThreadID HG_GetThreadID(HG_Thread *thread);
 void HG_WaitThread(HG_Thread *thread, int *status);
