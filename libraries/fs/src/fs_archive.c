@@ -287,12 +287,45 @@ static FSResult FSi_WriteMemCallback (FSArchive *p_arc, const void *src, u32 pos
 	return FS_RESULT_SUCCESS;
 }
 
+#if defined(__APPLE__) && defined(__aarch64__)
+#include <stdint.h>
+#endif
+
 static FSResult FSi_ReadMemoryCore (FSArchive *p_arc, void *dst, u32 pos, u32 size)
 {
-	(void)p_arc;
-	MI_CpuCopy8((const void *)pos, dst, size);
+#if defined(__APPLE__) && defined(__aarch64__)
+    /*
+     * The original SDK stores cached FAT/FNT addresses in u32 fields.
+     * On ARM64 these fields retain only the low 32 address bits.
+     *
+     * load_mem owns the full native allocation. Reconstruct the cache
+     * address from its 32-bit coordinate, preserving the original
+     * FSArchive layout and FSi_ReadTable position arithmetic.
+     */
+    const uintptr_t allocation = (uintptr_t)p_arc->load_mem;
 
-	return FS_RESULT_SUCCESS;
+    if (allocation == 0 || allocation > UINTPTR_MAX - 31u)
+        return FS_RESULT_FAILURE;
+
+    /* SDK_PORT stores FAT/FNT at load_mem without realignment. */
+    const uintptr_t base = allocation;
+    const u32 offset = (u32)(pos - (u32)base);
+
+    const uint64_t capacity =
+        (uint64_t)p_arc->fat_size + (uint64_t)p_arc->fnt_size;
+
+    if ((uint64_t)offset > capacity ||
+        (uint64_t)size > capacity - (uint64_t)offset ||
+        (uint64_t)offset > (uint64_t)(UINTPTR_MAX - base))
+        return FS_RESULT_FAILURE;
+
+    MI_CpuCopy8((const void *)(base + offset), dst, size);
+#else
+    (void)p_arc;
+    MI_CpuCopy8((const void *)pos, dst, size);
+#endif
+
+    return FS_RESULT_SUCCESS;
 }
 #endif
 

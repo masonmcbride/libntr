@@ -7,6 +7,11 @@
 extern "C" {
 #endif
 
+int HG_CartridgeInitialize(const char *path, void *header);
+void HG_CartridgeTransfer(uint32_t offset, void *dst, uint32_t length);
+void HG_CartridgeShutdown(void);
+uint32_t HG_CartridgeIdentity(void);
+
 /* Host services used by libntr's portable C implementation, not an SDL ABI. */
 typedef struct HG_Thread HG_Thread;
 typedef struct HG_Mutex HG_Mutex;

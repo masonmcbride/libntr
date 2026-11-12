@@ -180,9 +180,28 @@ sTexStartAddrTable[16] = {
 };
 #endif
 
+#ifdef SDK_PORT
+static void GX_EnsureTexStartAddrTable(void)
+{
+    static int initialized = 0;
+    if (!initialized) {
+        WIN_Init_sTexStartAddrTable();
+        initialized = 1;
+    }
+}
+#endif
+
 void GX_LoadTexEx (GXVRamTex tex, const void *pSrc, u32 destSlotAddr, u32 szByte)
 {
-	u32 base1, base2, szBlk1;
+#ifdef SDK_PORT
+    GX_EnsureTexStartAddrTable();
+#endif
+#ifdef SDK_PORT
+    u64 base1, base2;
+    u32 szBlk1;
+#else
+    u32 base1, base2, szBlk1;
+#endif
 	void *pLCDC;
 
 	SDK_ALIGN4_ASSERT(szByte);
@@ -193,8 +212,13 @@ void GX_LoadTexEx (GXVRamTex tex, const void *pSrc, u32 destSlotAddr, u32 szByte
 
 	GX_VRAM_TEX_ASSERT(tex);
 
-	base1 = (u32)(sTexStartAddrTable[tex].blk1 << 12);
-	base2 = (u32)(sTexStartAddrTable[tex].blk2 << 12);
+#ifdef SDK_PORT
+    base1 = (u64)sTexStartAddrTable[tex].blk1;
+    base2 = (u64)sTexStartAddrTable[tex].blk2;
+#else
+    base1 = (u32)(sTexStartAddrTable[tex].blk1 << 12);
+    base2 = (u32)(sTexStartAddrTable[tex].blk2 << 12);
+#endif
 	szBlk1 = (u32)(sTexStartAddrTable[tex].szBlk1 << 12);
 
 	SDK_ASSERT(0 != base1);
@@ -224,6 +248,9 @@ void GX_LoadTexEx (GXVRamTex tex, const void *pSrc, u32 destSlotAddr, u32 szByte
 
 void GX_BeginLoadTex (void)
 {
+#ifdef SDK_PORT
+    GX_EnsureTexStartAddrTable();
+#endif
 	SDK_ASSERT(0 == sTex && 0 == sTexLCDCBlk1 && 0 == sSzTexBlk1 && 0 == sTexLCDCBlk2);
 
 	sTex = GX_ResetBankForTex();
@@ -316,8 +343,22 @@ static const u16 sTexPlttStartAddrTable[8] = {
 };
 #endif
 
+#ifdef SDK_PORT
+static void GX_EnsureTexPlttStartAddrTable(void)
+{
+    static int initialized = 0;
+    if (!initialized) {
+        WIN_Init_sTexPlttStartAddrTable();
+        initialized = 1;
+    }
+}
+#endif
+
 void GX_LoadTexPlttEx (GXVRamTexPltt texPltt, const void *pSrc, u32 destSlotAddr, u32 szByte)
 {
+#ifdef SDK_PORT
+    GX_EnsureTexPlttStartAddrTable();
+#endif
 	#ifdef SDK_PORT
 	u64 base;
 	#else
@@ -328,7 +369,7 @@ void GX_LoadTexPlttEx (GXVRamTexPltt texPltt, const void *pSrc, u32 destSlotAddr
 
 	GX_VRAM_TEXPLTT_ASSERT(texPltt);
 	#ifdef SDK_PORT
-	base = (u64)(sTexPlttStartAddrTable[texPltt >> 4] << 12);
+	base = (u64)sTexPlttStartAddrTable[texPltt >> 4];
 	#else
 	base = (u32)(sTexPlttStartAddrTable[texPltt >> 4] << 12);
 	#endif
@@ -345,6 +386,9 @@ void GX_LoadTexPlttEx (GXVRamTexPltt texPltt, const void *pSrc, u32 destSlotAddr
 
 void GX_BeginLoadTexPltt (void)
 {
+#ifdef SDK_PORT
+    GX_EnsureTexPlttStartAddrTable();
+#endif
 	SDK_ASSERT(0 == sTexPltt && 0 == sTexPlttLCDCBlk);
 
 	sTexPltt = GX_ResetBankForTexPltt();

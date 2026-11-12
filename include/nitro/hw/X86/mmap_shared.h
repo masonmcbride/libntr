@@ -84,8 +84,12 @@ extern u8 s_HW_ARENA_INFO_BUF[sizeof(OSArenaInfo)];
 #define HW_DMA_CLEAR_DATA_BUF           (HW_MAIN_MEM_SYSTEM + 0x1F0)      // DMAクリアデータ・バッファ (END-0x210)
 #define HW_DMA_CLEAR_DATA_BUF_END       (HW_MAIN_MEM_SYSTEM + 0x200)      //  (この領域は ARM9-TEG にのみ使用する)
 
+#if defined(SDK_AARCH64) && defined(SDK_BUILD_MACOS)
+#define HW_ROM_HEADER_BUF (HW_MAIN_MEM + 0x007ffe00)
+#else
 #define HW_ROM_HEADER_BUF               (HW_MAIN_MEM_SYSTEM + 0x200)      // ＲＯＭ内登録エリアデータ・バッファ (END-0x200)
-#define HW_ROM_HEADER_BUF_END           (HW_MAIN_MEM_SYSTEM + 0x360)      //                                    (END-0x0a0)
+#endif
+#define HW_ROM_HEADER_BUF_END           (HW_ROM_HEADER_BUF + 0x160)      //                                    (END-0x0a0)
 #define HW_ISD_RESERVED                 (HW_MAIN_MEM_SYSTEM + 0x360)      // IS DEBUGGER Reserved (END-0xa0)
 #define HW_ISD_RESERVED_END             (HW_MAIN_MEM_SYSTEM + 0x380)      //                      (END-0x80)
 
@@ -145,7 +149,11 @@ extern u8 s_HW_ARENA_INFO_BUF[sizeof(OSArenaInfo)];
 #define HW_SHARED_LOCK_BUF              (HW_VRAM_C_LOCK_BUF)
 #define HW_SHARED_LOCK_BUF_END          (HW_INIT_LOCK_BUF + 8)
 
+#if defined(SDK_AARCH64) && defined(SDK_BUILD_MACOS)
+#define HW_CHECK_DEBUGGER_SW (HW_MAIN_MEM + 0x007ffc10)
+#else
 #define HW_CHECK_DEBUGGER_SW     0x027ffc10     // (u16)debugger check switch. if 0 check buf1, else buf2.
+#endif
 #define HW_CHECK_DEBUGGER_BUF1   0x027ff814     // (u16)debugger checker. 1 if run on debugger.
 #define HW_CHECK_DEBUGGER_BUF2   0x027ffc14     // (u16)debugger checker. 1 if run on debugger.
 

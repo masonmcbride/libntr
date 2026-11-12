@@ -87,6 +87,18 @@ void MI_SendGXCommandAsync (u32 dmaNo, const void * src, u32 commandLength, MIDm
 		return;
 	}
 
+#ifdef SDK_PORT
+    /*
+     * Native host: submit the original GX command bytes through the
+     * simulator transport, then complete the transfer callback.
+     * No DS hardware DMA interrupt is available on macOS.
+     */
+    MI_SendGXCommand(dmaNo, src, commandLength);
+    MIi_CallCallback(callback, arg);
+    return;
+#endif
+
+
     #ifndef SDK_PORT
 	while (MIi_GXDmaParams.isBusy  ) {
 	}
@@ -201,6 +213,18 @@ void MI_SendGXCommandAsyncFast (u32 dmaNo, const void * src, u32 commandLength, 
 		MIi_CallCallback(callback, arg);
 		return;
 	}
+
+#ifdef SDK_PORT
+    /*
+     * Native host: submit the original GX command bytes through the
+     * simulator transport, then complete the transfer callback.
+     * No DS hardware DMA interrupt is available on macOS.
+     */
+    MI_SendGXCommand(dmaNo, src, commandLength);
+    MIi_CallCallback(callback, arg);
+    return;
+#endif
+
 
 	while (MIi_GXDmaParams.isBusy  ) {
 	}

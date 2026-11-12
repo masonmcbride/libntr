@@ -9,6 +9,19 @@
 #include "../include/card_common.h"
 #include "../include/card_rom.h"
 
+#if SDK_VERSION_MAJOR == 4 && defined(SDK_PORT) && defined(SDK_AARCH64) && defined(SDK_BUILD_MACOS)
+#define HG_NATIVE_CARD 1
+#include <ntr_host.h>
+/* Owned by the serialized CARD operation, never by host storage. */
+static struct { void *dst; u32 offset, length; } native_request;
+static void CARDi_ReadNative(CARDiCommon *c) {
+    (void)c;
+    HG_CartridgeTransfer(native_request.offset, native_request.dst, native_request.length);
+    native_request.dst = NULL;
+    CARDi_ReadEnd();
+}
+#endif
+
 #if SDK_VERSION_MAJOR == 5
 #if defined(SDK_ARM9) && defined(SDK_TWL)
 #define CARD_USING_HASHCHECK
@@ -331,7 +344,9 @@ static void CARDi_StartRomPageTransfer(u32 offset) {
 
     u32 CARDi_ReadRomIDCore (void)
     {
-        #if SDK_VERSION_MAJOR == 4
+        #if defined(HG_NATIVE_CARD)
+        return HG_CartridgeIdentity();
+        #elif SDK_VERSION_MAJOR == 4
         CARDi_SetRomOp(MROMOP_G_READ_ID, 0);
         *(vu32 *)REG_CARDCNT = (u32)(CARDi_GetRomFlag(CARD_COMMAND_ID) & ~CARD_LATENCY1_MASK);
         while (!(*(vu32 *)REG_CARDCNT & CARD_DATA_READY)) {
@@ -651,6 +666,19 @@ void CARDi_ReadRom (u32 dma,
       c->DmaCall->Stop(c->dma);
     }
     #endif
+#ifdef HG_NATIVE_CARD
+    /* WaitTask owns serialization before publishing the full-width pointer. */
+    if ((u64)(uintptr_t)src + cardi_rom_base > 0xffffffffULL) {
+        OS_TPanic("native CARD offset overflow");
+        return;
+    }
+    native_request.dst = dst;
+    native_request.offset = (u32)(uintptr_t)src + cardi_rom_base;
+    native_request.length = len;
+    if (is_async) CARDi_SetTask(CARDi_ReadNative);
+    else { c->cur_th = OS_GetCurrentThread(); CARDi_ReadNative(c); }
+    return;
+#endif
 	c->src = (u32)((u32)src + cardi_rom_base);
 	c->dst = (u32)dst;
 	c->len = (u32)len;

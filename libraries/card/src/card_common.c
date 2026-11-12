@@ -193,7 +193,7 @@ BOOL CARDi_WaitAsync (void)
 
 	{
 		OSIntrMode bak_psr = OS_DisableInterrupts();
-        #ifndef SDK_PORT
+        #if !defined(SDK_PORT) || (defined(SDK_AARCH64) && defined(SDK_BUILD_MACOS))
 		while ((p->flag & CARD_STAT_BUSY) != 0) {
 			OS_SleepThread(p->busy_q);
 		}

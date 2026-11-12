@@ -1,3 +1,7 @@
+/* Native cartridge uses the original archive commands, not simulator stdio. */
+#if SDK_VERSION_MAJOR == 4 && defined(SDK_PORT) && defined(SDK_AARCH64) && defined(SDK_BUILD_MACOS)
+#define HG_NATIVE_CARD_FS 1
+#endif
 #if SDK_VERSION_MAJOR == 5
 #include <nitro/types.h>
 #include <nitro/misc.h>
@@ -16,7 +20,7 @@
 #include "../include/util.h"
 #include "../include/command.h"
 
-#ifdef SDK_PORT
+#if defined(SDK_PORT) && !defined(HG_NATIVE_CARD_FS)
 #include <string.h>
 #include <ctype.h>
 #include <ntr_host.h>
@@ -269,7 +273,7 @@ static s32 FSi_ReadFileCore (FSFile *p_file, void *dst, s32 len, BOOL async)
 	FS_ASSERT_IDLE(p_file, -1);
 
 	{
-		#ifdef SDK_PORT
+		#if defined(SDK_PORT) && !defined(HG_NATIVE_CARD_FS)
 		s32 old_len;
 		old_len = len;
 		#endif
@@ -285,7 +289,7 @@ static s32 FSi_ReadFileCore (FSFile *p_file, void *dst, s32 len, BOOL async)
 		p_file->arg.readfile.dst = dst;
 		p_file->arg.readfile.len_org = org;
 		p_file->arg.readfile.len = (u32)(len);
-		#ifdef SDK_PORT
+		#if defined(SDK_PORT) && !defined(HG_NATIVE_CARD_FS)
 		if( p_file->pcFilePtr != NULL ){
 			return fread( dst, 1, old_len, p_file->pcFilePtr );
 		}
@@ -294,7 +298,7 @@ static s32 FSi_ReadFileCore (FSFile *p_file, void *dst, s32 len, BOOL async)
 		if (!async)
 			p_file->stat |= FS_FILE_STATUS_SYNC;
 
-		#ifdef SDK_BUILD_ARM
+		#if defined(SDK_BUILD_ARM) || defined(HG_NATIVE_CARD_FS)
 		(void)FSi_SendCommand(p_file, FS_COMMAND_READFILE);
 		#endif
 
@@ -328,7 +332,7 @@ static s32 FSi_WriteFileCore (FSFile *p_file, const void *src, s32 len, BOOL asy
 		p_file->arg.writefile.src = src;
 		p_file->arg.writefile.len_org = org;
 		p_file->arg.writefile.len = (u32)(len);
-		#ifdef SDK_PORT
+		#if defined(SDK_PORT) && !defined(HG_NATIVE_CARD_FS)
 		if( p_file->pcFilePtr != NULL ){
 			return fwrite( src, 1, len, p_file->pcFilePtr );
 		}
@@ -411,7 +415,7 @@ BOOL FS_OpenFileDirect (FSFile *p_file, FSArchive *p_arc, u32 image_top, u32 ima
 		p_file->arg.openfiledirect.top = image_top;
 		p_file->arg.openfiledirect.bottom = image_bottom;
 
-		#ifdef SDK_BUILD_ARM
+		#if defined(SDK_BUILD_ARM) || defined(HG_NATIVE_CARD_FS)
 		if (!FSi_SendCommand(p_file, FS_COMMAND_OPENFILEDIRECT))
 			return FALSE;
 		#endif
@@ -438,7 +442,7 @@ BOOL FS_OpenFileDirect (FSFile *p_file, FSArchive *p_arc, u32 image_top, u32 ima
   	}
 	#endif
 
-	#ifdef SDK_PORT
+	#if defined(SDK_PORT) && !defined(HG_NATIVE_CARD_FS)
 	const char* romName = "rom";
 
 	p_file->pcFilePtr = NULL;
@@ -506,7 +510,7 @@ BOOL FS_OpenFile (FSFile *p_file, const char *path)
 	return FS_OpenFileEx(p_file, path, FS_FILEMODE_R);
 	#endif
 	FSFileID id;
-	#ifdef SDK_PORT
+	#if defined(SDK_PORT) && !defined(HG_NATIVE_CARD_FS)
     /*
      * Native resource namespace: generated assets first, then original
      * extracted assets. Missing paths fail without UI or recursion.
@@ -591,7 +595,7 @@ BOOL FS_CloseFile (FSFile *p_file)
   	SDK_ASSERT(OS_GetProcMode() != OS_PROCMODE_IRQ);
 	#endif
 
-	#ifdef SDK_PORT
+	#if defined(SDK_PORT) && !defined(HG_NATIVE_CARD_FS)
 	p_file->arc = NULL;
   #if SDK_VERSION_MAJOR == 4
 	p_file->command = FS_COMMAND_INVALID;
@@ -1494,7 +1498,7 @@ s32 FS_WriteFile (FSFile *p_file, const void *src, s32 len)
 BOOL FS_SeekFile (FSFile *p_file, s32 offset, FSSeekFileMode origin)
 {
 	#if SDK_VERSION_MAJOR == 4
-	#ifdef SDK_BUILD_ARM
+	#if defined(SDK_BUILD_ARM) || defined(HG_NATIVE_CARD_FS)
 	FS_ASSERT_INIT(FALSE);
 	FS_ASSERT_ARG(p_file, FALSE);
 	FS_ASSERT_FILE(p_file, FALSE);
@@ -1507,7 +1511,7 @@ BOOL FS_SeekFile (FSFile *p_file, s32 offset, FSSeekFileMode origin)
   	SDK_ASSERT(FS_IsFile(file));
 	#endif
 
-	#ifdef SDK_PORT
+	#if defined(SDK_PORT) && !defined(HG_NATIVE_CARD_FS)
 	s32 temp_offset;
 	temp_offset = offset;
 	#endif
@@ -1547,7 +1551,7 @@ BOOL FS_SeekFile (FSFile *p_file, s32 offset, FSSeekFileMode origin)
   	}
 	#endif
 
-	#ifdef SDK_PORT
+	#if defined(SDK_PORT) && !defined(HG_NATIVE_CARD_FS)
 	if( p_file->pcFilePtr != NULL )
 	{
 		switch(origin)
@@ -2078,13 +2082,13 @@ u32 FS_GetPosition(FSFile *file) { return FS_GetFilePosition(file); }
 
 static const int FSiUnicodeBufferQueueMax = 4;
 static OSMessageQueue FSiUnicodeBufferQueue[1];
-#ifdef SDK_BUILD_ARM
+#if defined(SDK_BUILD_ARM) || defined(HG_NATIVE_CARD_FS)
 static OSMessage FSiUnicodeBufferQueueArray[FSiUnicodeBufferQueueMax];
 #else
 static OSMessage FSiUnicodeBufferQueueArray[4];
 #endif
 static BOOL FSiUnicodeBufferQueueInitialized = FALSE;
-#ifdef SDK_BUILD_ARM
+#if defined(SDK_BUILD_ARM) || defined(HG_NATIVE_CARD_FS)
 static u16 FSiUnicodeBufferTable[FSiUnicodeBufferQueueMax]
                                 [FS_ARCHIVE_FULLPATH_MAX + 1];
 #else
@@ -2128,7 +2132,7 @@ SDK_WEAK_SYMBOL
 STDResult FSi_ConvertStringSjisToUnicode(u16 *dst, int *dst_len,
                                          const char *src, int *src_len,
                                          STDConvertUnicodeCallback callback)
-#ifdef SDK_BUILD_ARM
+#if defined(SDK_BUILD_ARM) || defined(HG_NATIVE_CARD_FS)
     __attribute__((never_inline))
 #endif
 {
@@ -2139,7 +2143,7 @@ SDK_WEAK_SYMBOL
 STDResult FSi_ConvertStringUnicodeToSjis(char *dst, int *dst_len,
                                          const u16 *src, int *src_len,
                                          STDConvertSjisCallback callback)
-#ifdef SDK_BUILD_ARM
+#if defined(SDK_BUILD_ARM) || defined(HG_NATIVE_CARD_FS)
     __attribute__((never_inline))
 #endif
 {
