@@ -39,6 +39,15 @@ static SPIWork spiWork;
 static void SpiCommonThread(void *arg);
 static void SpiPxiCallback(PXIFifoTag tag, uPtr data, BOOL err);
 
+static void SpiRegisterArm7Callback(int tag, PXIFifoCallback callback)
+{
+#ifdef SDK_PORT
+    PXI_SetFifoRecvCallback7(tag, callback);
+#else
+    PXI_SetFifoRecvCallback(tag, callback);
+#endif
+}
+
 void SPI_Init(u32 prio)
 {
     if (spiInitialized)
@@ -65,14 +74,14 @@ void SPI_Init(u32 prio)
 #ifndef SDK_PORT
     PXI_Init();
 #endif
-    PXI_SetFifoRecvCallback(PXI_FIFO_TAG_TOUCHPANEL, SpiPxiCallback);
+    SpiRegisterArm7Callback(PXI_FIFO_TAG_TOUCHPANEL, SpiPxiCallback);
 #ifndef SDK_SMALL_BUILD
-    PXI_SetFifoRecvCallback(PXI_FIFO_TAG_MIC, SpiPxiCallback);
+    SpiRegisterArm7Callback(PXI_FIFO_TAG_MIC, SpiPxiCallback);
 #endif
 #ifndef SDK_TEG
-    PXI_SetFifoRecvCallback(PXI_FIFO_TAG_PM, SpiPxiCallback);
+    SpiRegisterArm7Callback(PXI_FIFO_TAG_PM, SpiPxiCallback);
 #endif
-    PXI_SetFifoRecvCallback(PXI_FIFO_TAG_NVRAM, SpiPxiCallback);
+    SpiRegisterArm7Callback(PXI_FIFO_TAG_NVRAM, SpiPxiCallback);
 
     OS_InitMessageQueue(&(spiWork.message), spiWork.msg_buf, SPI_MESSAGE_ARRAY_MAX);
     {
@@ -165,7 +174,13 @@ void SPIi_ReturnResult(u32 command, u32 result)
         break;
     }
 
-    while (0 > PXI_SendWordByFifo(tag,
+    while (0 >
+#ifdef SDK_PORT
+    PXI_SendWordByFifo7
+#else
+    PXI_SendWordByFifo
+#endif
+    (tag,
                                   SPI_PXI_START_BIT |
                                   SPI_PXI_END_BIT |
                                   (0 << SPI_PXI_INDEX_SHIFT) |
