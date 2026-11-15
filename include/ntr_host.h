@@ -83,3 +83,21 @@ uint64_t HG_G3SubmittedFrames(void);
 }
 #endif
 #endif
+
+/* Native desktop runtime. All calls except audio device consumption run on the
+ * game/main thread; disabled until HG_RuntimeInitialize succeeds. */
+#ifndef NTR_HOST_RUNTIME_H
+#define NTR_HOST_RUNTIME_H
+#ifdef __cplusplus
+extern "C" {
+#endif
+int HG_RuntimeInitialize(void);
+int HG_RuntimeActive(void);
+void HG_RuntimeShutdown(void);
+uint16_t HG_RuntimePollInput(uint16_t *x, uint16_t *y, int *touch);
+void HG_RuntimePresent(const uint8_t *rgba);
+void HG_RuntimeQueueAudio(const int16_t *stereo, size_t frames);
+#ifdef __cplusplus
+}
+#endif
+#endif

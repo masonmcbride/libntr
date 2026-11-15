@@ -2,7 +2,9 @@
 #include <simulator/sim_audio.h>
 #include <simulator/sim.h>
 #include <simulator/config/sim_config.h>
+#ifndef SDK_NATIVE_G3
 #include <SDL2/SDL.h>
+#endif
 
 #include "blip_buf.h"
 
@@ -10,9 +12,11 @@
 #include "tracy/TracyC.h"
 #endif
 
+#ifndef SDK_NATIVE_G3
 static SDL_AudioSpec s_requestedAudioSpec, s_actualAudioSpec;
 static SDL_AudioDeviceID s_audioDevice;
 
+#endif
 u32 s_SIM_sndcnt[16] = {0};
 u8 * s_SIM_sndsad[16] = {0};
 u16 s_SIM_sndtmr[16] = {0};
@@ -84,6 +88,7 @@ void SIM_Audio_Init(int aAudioFrequency)
     blip_set_rates(s_BlipLeft, INTERNAL_SAMPLE_RATE * 1.0f, aAudioFrequency);
     blip_set_rates(s_BlipRight, INTERNAL_SAMPLE_RATE * 1.0f, aAudioFrequency);
 
+#ifndef SDK_NATIVE_G3
     memset(&s_requestedAudioSpec, 0, sizeof(SDL_AudioSpec));
     s_requestedAudioSpec.freq = aAudioFrequency;
     s_requestedAudioSpec.format = AUDIO_S16LSB;
@@ -98,7 +103,8 @@ void SIM_Audio_Init(int aAudioFrequency)
     if(SDL_OpenAudio(&s_requestedAudioSpec, NULL) < 0) {
         printf("SDL Error %s\n", SDL_GetError());
     }
-    SDL_PauseAudio(0);
+    SDL_PauseAudio(0);#endif
+
 }
 
 static u8 GetNextADPCMByte(int chNo);
@@ -107,7 +113,7 @@ static void PanOutput(s32 in, s32 * left, s32 * right, int chNo);
 
 static int maxOutput = 0;
 
-void SIM_Audio_Callback(void *userdata, Uint8 *stream, int len)
+void SIM_Audio_Callback(void *userdata, uint8_t *stream, int len)
 {
     #ifdef SDK_TRACY_ENABLE
     TracyCZone(ctx, 1);

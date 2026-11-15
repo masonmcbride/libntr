@@ -1,6 +1,8 @@
 #include <nitro.h>
 #include <simulator/sim.h>
+#ifndef SDK_NATIVE_G3
 #include <simulator/sim_opengl.h>
+#endif
 
 #ifdef SDK_TRACY_ENABLE
 #include "tracy/TracyC.h"
@@ -35,9 +37,11 @@ extern u8 s_SIM_DBG_OAMSenable;
 
 extern u8 s_mosaicTable[16][256];
 
+#ifndef SDK_NATIVE_G3
 extern GLuint s_bgTextureId[4];
 extern GLuint s_objTextureId[5];
 extern GLint s_bgTexUnits[];
+#endif
 
 extern u32 OBJLine[2][256];
 extern u8 OBJWindow[2][256];
@@ -236,12 +240,14 @@ void G2SIM_DrawBG(u8 bgNum, u8 bgMode, u8 bg03D, u8 isSub) {
     bgTexBuf = bgTexTable[bgNum];
   }
 
+#ifndef SDK_NATIVE_G3
   glActiveTexture(GL_TEXTURE0 + s_bgTexUnits[bgNum]);
   glBindTexture(GL_TEXTURE_2D, s_bgTextureId[bgNum]);
 
   glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, SIM_NDS_SCREEN_WIDTH,
                   SIM_NDS_SCREEN_HEIGHT * 2, GL_RGBA, GL_UNSIGNED_BYTE,
                   (void *)bgTexBuf);
+#endif
 #ifdef SDK_TRACY_ENABLE
   TracyCZoneEnd(ctx);
 #endif
