@@ -336,7 +336,17 @@ void SIM_procPXI(void)
 						break;
 				}
 			} break;
-			case PXI_FIFO_TAG_WVR: {
+			case PXI_FIFO_TAG_PM: {
+            /* Dispatch to the actual registered ARM7 SPI/PM receiver. */
+            if (FifoRecvCallbackTable7[PXI_FIFO_TAG_PM]) {
+                FifoRecvCallbackTable7[PXI_FIFO_TAG_PM](
+                    PXI_FIFO_TAG_PM,
+                    msg->e.data,
+                    (BOOL)msg->e.err);
+            }
+        } break;
+
+        case PXI_FIFO_TAG_WVR: {
 				if(FifoRecvCallbackTable7[PXI_FIFO_TAG_WVR]) {
 					FifoRecvCallbackTable7[PXI_FIFO_TAG_WVR](PXI_FIFO_TAG_WVR, msg->e.data, (BOOL)msg->e.err);
 				}
