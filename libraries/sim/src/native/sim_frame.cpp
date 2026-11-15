@@ -4,6 +4,7 @@
 #include <ntr_host.h>
 #include <time.h>
 #include <simulator/sim.h>
+#include <simulator/simvariables.h>
 extern void G2Native_RenderFrame();
 extern "C" void HG_SoundRenderFrame();
 

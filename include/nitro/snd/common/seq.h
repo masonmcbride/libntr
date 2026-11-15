@@ -120,6 +120,8 @@ typedef struct SNDTrack {
     void SND_SeqInit(void);
     void SND_SeqMain(BOOL doPeriodicProc);
 
+    void SNDi_SetPlayerParam7(int playerNo, u32 offset, u32 data, int size);
+    void SNDi_SetTrackParam7(int playerNo, u32 trackBitMask, u32 offset, u32 data, int size);
     void SND_StartSeq7(int playerNo, const void *seqBase, u32 seqOffset, struct SNDBankData *bank_p);
     void SND_StopSeq7(int playerNo);
     void SND_PrepareSeq7(int playerNo, const void *seqBase, u32 seqOffset, struct SNDBankData *bank_p);

@@ -271,6 +271,7 @@ void SND_SetChannelTimer7(int chNo, int timer);
 void SND_SetChannelPan7(int chNo, int pan);
 BOOL SND_IsChannelActive7(int chNo);
 void SND_SetMasterPan7(int pan);
+void SNDi_SetSurroundDecay7(int decay);
 u32 SND_GetChannelControl7(int chNo);
 #endif
 

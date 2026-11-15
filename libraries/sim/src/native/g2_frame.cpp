@@ -4,6 +4,7 @@
  * Buffers retain the simulator's bottom-up, two-screen layout until handoff. */
 #include <nitro.h>
 #include <simulator/sim.h>
+#include "sim_g2.h"
 #include <ntr_host.h>
 #include <algorithm>
 #include <cstring>
