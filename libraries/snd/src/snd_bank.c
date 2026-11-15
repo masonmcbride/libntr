@@ -25,6 +25,15 @@
     #endif
 #endif
 
+#ifdef SDK_NATIVE_G3
+#include "snd_native_storage.h"
+#define BANK_LINKS(bank) SNDi_NativeBankLinks(bank)
+#define ARC_TOP(arc) (*SNDi_NativeArcTop(arc))
+#else
+#define BANK_LINKS(bank) ((bank)->waveArcLink)
+#define ARC_TOP(arc) ((arc)->topLink)
+#endif
+
 static const SNDWaveData * GetWaveData(const SNDBankData * bank, int waveArcNo, int waveIndex);
 
 void SND_AssignWaveArc (SNDBankData * bank, int index, SNDWaveArc * waveArc)
@@ -42,27 +51,27 @@ void SND_AssignWaveArc (SNDBankData * bank, int index, SNDWaveArc * waveArc)
 
     SNDi_LockMutex();
 
-    if (bank->waveArcLink[index].waveArc != NULL) {
-        if (waveArc == bank->waveArcLink[index].waveArc) {
+    if (BANK_LINKS(bank)[index].waveArc != NULL) {
+        if (waveArc == BANK_LINKS(bank)[index].waveArc) {
             SNDi_UnlockMutex();
             return;
         }
 
-        if (&bank->waveArcLink[index] == bank->waveArcLink[index].waveArc->topLink) {
-            bank->waveArcLink[index].waveArc->topLink = bank->waveArcLink[index].next;
+        if (&BANK_LINKS(bank)[index] == ARC_TOP(BANK_LINKS(bank)[index].waveArc)) {
+            ARC_TOP(BANK_LINKS(bank)[index].waveArc) = BANK_LINKS(bank)[index].next;
 
 #ifdef SDK_ARM9
-            DC_StoreRange(bank->waveArcLink[index].waveArc, sizeof(SNDWaveArc));
+            DC_StoreRange(BANK_LINKS(bank)[index].waveArc, sizeof(SNDWaveArc));
 #endif
         } else {
-            prev = bank->waveArcLink[index].waveArc->topLink;
+            prev = ARC_TOP(BANK_LINKS(bank)[index].waveArc);
             while (prev != NULL) {
-                if (&bank->waveArcLink[index] == prev->next)
+                if (&BANK_LINKS(bank)[index] == prev->next)
                     break;
                 prev = prev->next;
             }
             SDK_NULL_ASSERT(prev);
-            prev->next = bank->waveArcLink[index].next;
+            prev->next = BANK_LINKS(bank)[index].next;
 
 #ifdef SDK_ARM9
             DC_StoreRange(prev, sizeof(SNDWaveArcLink));
@@ -70,10 +79,10 @@ void SND_AssignWaveArc (SNDBankData * bank, int index, SNDWaveArc * waveArc)
         }
     }
 
-    next = waveArc->topLink;
-    waveArc->topLink = &bank->waveArcLink[index];
-    bank->waveArcLink[index].next = next;
-    bank->waveArcLink[index].waveArc = waveArc;
+    next = ARC_TOP(waveArc);
+    ARC_TOP(waveArc) = &BANK_LINKS(bank)[index];
+    BANK_LINKS(bank)[index].next = next;
+    BANK_LINKS(bank)[index].waveArc = waveArc;
 
     SNDi_UnlockMutex();
 
@@ -97,31 +106,35 @@ void SND_DestroyBank (SNDBankData * bank)
     SNDi_LockMutex();
 
     for (i = 0; i < SND_BANK_TO_WAVEARC_MAX; i++) {
-        waveArc = bank->waveArcLink[i].waveArc;
+        waveArc = BANK_LINKS(bank)[i].waveArc;
         if (waveArc == NULL)
             continue;
 
-        if (&bank->waveArcLink[i] == waveArc->topLink) {
-            waveArc->topLink = bank->waveArcLink[i].next;
+        if (&BANK_LINKS(bank)[i] == ARC_TOP(waveArc)) {
+            ARC_TOP(waveArc) = BANK_LINKS(bank)[i].next;
 
 #ifdef SDK_ARM9
             DC_StoreRange(waveArc, sizeof(SNDWaveArc));
 #endif
         } else {
-            prev = waveArc->topLink;
+            prev = ARC_TOP(waveArc);
             while (prev != NULL) {
-                if (&bank->waveArcLink[i] == prev->next)
+                if (&BANK_LINKS(bank)[i] == prev->next)
                     break;
                 prev = prev->next;
             }
             SDK_NULL_ASSERT(prev);
-            prev->next = bank->waveArcLink[i].next;
+            prev->next = BANK_LINKS(bank)[i].next;
 
 #ifdef SDK_ARM9
             DC_StoreRange(prev, sizeof(SNDWaveArcLink));
 #endif
         }
     }
+
+#ifdef SDK_NATIVE_G3
+    SNDi_NativeDestroyBank(bank);
+#endif
 
     SNDi_UnlockMutex();
 }
@@ -138,7 +151,7 @@ void SND_DestroyWaveArc (SNDWaveArc * waveArc)
 
     SNDi_LockMutex();
 
-    link = waveArc->topLink;
+    link = ARC_TOP(waveArc);
     while (link != NULL) {
         next = link->next;
 
@@ -150,6 +163,10 @@ void SND_DestroyWaveArc (SNDWaveArc * waveArc)
 #endif
         link = next;
     }
+
+#ifdef SDK_NATIVE_G3
+    SNDi_NativeDestroyArc(waveArc);
+#endif
 
     SNDi_UnlockMutex();
 }
@@ -191,7 +208,7 @@ BOOL SND_ReadInstData (const SNDBankData * bank, int prgNo, int key, SNDInstData
     case SND_INST_DIRECTPCM:
     case SND_INST_NULL:
     {
-        #ifdef SDK_PORT
+        #if defined(SDK_PORT) && !defined(SDK_NATIVE_G3)
         const SNDInstParam * param = (const SNDInstParam *)((u8 *)bank + instOffset + 32);
         #else
         const SNDInstParam * param = (const SNDInstParam *)((u8 *)bank + instOffset);
@@ -202,7 +219,7 @@ BOOL SND_ReadInstData (const SNDBankData * bank, int prgNo, int key, SNDInstData
     }
     case SND_INST_DRUM_SET:
     {
-        #ifdef SDK_PORT
+        #if defined(SDK_PORT) && !defined(SDK_NATIVE_G3)
         const SNDDrumSet * drumSet = (const SNDDrumSet *)((u8 *)bank + instOffset + 32);
         #else
         const SNDDrumSet * drumSet = (const SNDDrumSet *)((u8 *)bank + instOffset);
@@ -221,7 +238,7 @@ BOOL SND_ReadInstData (const SNDBankData * bank, int prgNo, int key, SNDInstData
     case SND_INST_KEY_SPLIT:
     {
         int index = 0;
-        #ifdef SDK_PORT
+        #if defined(SDK_PORT) && !defined(SDK_NATIVE_G3)
         const SNDKeySplit * keySplit = (const SNDKeySplit *)((u8 *)bank + instOffset + 32);
         #else
         const SNDKeySplit * keySplit = (const SNDKeySplit *)((u8 *)bank + instOffset);
@@ -409,7 +426,11 @@ void SND_SetWaveDataAddress (SNDWaveArc * waveArc, int index, const SNDWaveData 
 
     SNDi_LockMutex();
 
+#ifdef SDK_NATIVE_G3
+    SNDi_NativeSetWave(waveArc,index,address);
+#else
     waveArc->waveOffset[index] = (u32)address;
+#endif
 
 #ifdef SDK_ARM9
     DC_StoreRange(&waveArc->waveOffset[index], sizeof(u32));
@@ -428,6 +449,13 @@ const SNDWaveData * SND_GetWaveDataAddress (const SNDWaveArc * waveArc, int inde
 
     SNDi_LockMutex();
 
+#ifdef SDK_NATIVE_G3
+    if(SNDi_NativeGetWave(waveArc,index,&wave)) { SNDi_UnlockMutex(); return wave; }
+    offset = waveArc->waveOffset[index];
+    wave = offset ? (const SNDWaveData *)((const u8 *)waveArc+offset) : NULL;
+    SNDi_UnlockMutex();
+    return wave;
+#else
     offset = waveArc->waveOffset[index];
 
     if (offset != 0) {
@@ -442,6 +470,7 @@ const SNDWaveData * SND_GetWaveDataAddress (const SNDWaveArc * waveArc, int inde
     SNDi_UnlockMutex();
 
     return wave;
+#endif
 }
 
 #if defined( SDK_PORT ) || defined(SDK_ARM7)
@@ -515,7 +544,7 @@ BOOL SND_NoteOn (SNDExChannel * ch_p, int key, int velocity, s32 length, const S
 
         SDK_MINMAX_ASSERT(waveArcNo, 0, SND_BANK_TO_WAVEARC_MAX - 1);
 
-        arc = bank->waveArcLink[waveArcNo].waveArc;
+        arc = BANK_LINKS(bank)[waveArcNo].waveArc;
 
         if (arc == NULL)
             return NULL;

@@ -43,7 +43,7 @@ typedef struct WIN_SNDWaveArcLink
 } WIN_SNDWaveArcLink;
 #endif
 
-#ifdef SDK_PORT
+#if defined(SDK_PORT) && !defined(SDK_NATIVE_G3)
 typedef struct SNDWaveArc
 {
 	struct SNDBinaryFileHeader fileHeader;
@@ -72,7 +72,11 @@ typedef struct SNDWaveData {
 typedef struct SNDBankData {
 	struct SNDBinaryFileHeader fileHeader;
 	struct SNDBinaryBlockHeader blockHeader;
-	struct SNDWaveArcLink waveArcLink[SND_BANK_TO_WAVEARC_MAX];
+#ifdef SDK_NATIVE_G3
+    struct WIN_SNDWaveArcLink waveArcLink[SND_BANK_TO_WAVEARC_MAX];
+#else
+    struct SNDWaveArcLink waveArcLink[SND_BANK_TO_WAVEARC_MAX];
+#endif
 	u32 instCount;
 	u32 instOffset[0];
 } SNDBankData;

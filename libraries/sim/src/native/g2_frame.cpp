@@ -103,8 +103,10 @@ void engine(bool sub)
     }
 }
 }
-void G2Native_RenderFrame()
+const u8 *G2Native_ComposeFrame()
 {
     if(HG_G3SubmittedFrames())HG_G3Readback(g3,256*4);
-    engine(false);engine(true);HG_RuntimePresent(output);
+    engine(false);engine(true);return output;
 }
+
+void G2Native_RenderFrame() { HG_RuntimePresent(G2Native_ComposeFrame()); }

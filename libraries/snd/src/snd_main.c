@@ -138,14 +138,14 @@ void SND_InitIntervalTimer(void)
 
 void SNDi_LockMutex (void)
 {
-#ifdef SDK_ARM9
+#if defined(SDK_ARM9) || defined(SDK_NATIVE_G3)
     OS_LockMutex(&sSndMutex);
 #endif
 }
 
 void SNDi_UnlockMutex (void)
 {
-#ifdef SDK_ARM9
+#if defined(SDK_ARM9) || defined(SDK_NATIVE_G3)
     OS_UnlockMutex(&sSndMutex);
 #endif
 }
