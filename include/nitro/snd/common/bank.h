@@ -57,7 +57,11 @@ typedef struct SNDWaveArc
 typedef struct SNDWaveArc {
 	struct SNDBinaryFileHeader fileHeader;
 	struct SNDBinaryBlockHeader blockHeader;
+#ifdef SDK_NATIVE_G3
+    u32 topLink; /* serialized link word; native links are owned separately */
+#else
 	struct SNDWaveArcLink * topLink;
+#endif
 	u32 reserved[7];
 	u32 waveCount;
 	u32 waveOffset[0];
