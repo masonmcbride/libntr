@@ -61,7 +61,7 @@ static void DrawOBJ_Normal(u32 num, u32 width, u32 height, s32 xpos, s32 ypos,
                            u8 isSub, u8 isWin);
 static void *getBgExtPlttVramBank(BOOL isSub);
 
-void G2SIM_DrawBG(u8 bgNum, u8 bgMode, u8 bg03D, u8 isSub) {
+static void DrawBGLines(u8 bgNum, u8 bgMode, u8 bg03D, u8 isSub, u32 first, u32 last) {
 #ifdef SDK_TRACY_ENABLE
   TracyCZone(ctx, 1);
 #endif
@@ -102,7 +102,7 @@ void G2SIM_DrawBG(u8 bgNum, u8 bgMode, u8 bg03D, u8 isSub) {
 
       } else {
         // Text Mode
-        for (int j = 0; j < SIM_NDS_SCREEN_HEIGHT; j++) {
+        for (u32 j = first; j < last; j++) {
           DrawBGLine_Text(j, bgNum, 0, isSub);
         }
       }
@@ -127,7 +127,7 @@ void G2SIM_DrawBG(u8 bgNum, u8 bgMode, u8 bg03D, u8 isSub) {
     case 5:
       // Modes 0-5 on BG1 are always text
       // Text Mode
-      for (int j = 0; j < SIM_NDS_SCREEN_HEIGHT; j++) {
+      for (u32 j = first; j < last; j++) {
         DrawBGLine_Text(j, bgNum, 0, isSub);
       }
       break;
@@ -147,35 +147,35 @@ void G2SIM_DrawBG(u8 bgNum, u8 bgMode, u8 bg03D, u8 isSub) {
     case 1:
       // Modes 0 and 1 are text on BG2
       // Text Mode
-      for (int j = 0; j < SIM_NDS_SCREEN_HEIGHT; j++) {
+      for (u32 j = first; j < last; j++) {
         DrawBGLine_Text(j, bgNum, 0, isSub);
       }
       break;
     case 2:
       // Mode 2 is affine on BG2
       // Affine Mode
-      for (int j = 0; j < SIM_NDS_SCREEN_HEIGHT; j++) {
+      for (u32 j = first; j < last; j++) {
         DrawBGLine_Affine(j, bgNum, 0, isSub);
       }
       break;
     case 3:
       // Mode 3 is text on BG2
       // Text Mode
-      for (int j = 0; j < SIM_NDS_SCREEN_HEIGHT; j++) {
+      for (u32 j = first; j < last; j++) {
         DrawBGLine_Text(j, bgNum, 0, isSub);
       }
       break;
     case 4:
       // Mode 5 is affine on BG2
       // Affine Mode
-      for (int j = 0; j < SIM_NDS_SCREEN_HEIGHT; j++) {
+      for (u32 j = first; j < last; j++) {
         DrawBGLine_Affine(j, bgNum, 0, isSub);
       }
       break;
     case 5:
       // Mode 5 is "Extended" on BG2
       // Extended Mode
-      for (int j = 0; j < SIM_NDS_SCREEN_HEIGHT; j++) {
+      for (u32 j = first; j < last; j++) {
         DrawBGLine_Extended(j, bgNum, 0, isSub);
       }
       break;
@@ -198,7 +198,7 @@ void G2SIM_DrawBG(u8 bgNum, u8 bgMode, u8 bg03D, u8 isSub) {
     case 0:
       // Mode 0 and is text on BG3
       // Text Mode
-      for (int j = 0; j < SIM_NDS_SCREEN_HEIGHT; j++) {
+      for (u32 j = first; j < last; j++) {
         DrawBGLine_Text(j, bgNum, 0, isSub);
       }
       break;
@@ -206,7 +206,7 @@ void G2SIM_DrawBG(u8 bgNum, u8 bgMode, u8 bg03D, u8 isSub) {
     case 2:
       // Modes 1 and 2 are affine on BG3
       // Affine Mode
-      for (int j = 0; j < SIM_NDS_SCREEN_HEIGHT; j++) {
+      for (u32 j = first; j < last; j++) {
         DrawBGLine_Affine(j, bgNum, 0, isSub);
       }
       break;
@@ -215,7 +215,7 @@ void G2SIM_DrawBG(u8 bgNum, u8 bgMode, u8 bg03D, u8 isSub) {
     case 5:
       // Modes 3-5 are "Extended" on BG3
       // Extended Mode
-      for (int j = 0; j < SIM_NDS_SCREEN_HEIGHT; j++) {
+      for (u32 j = first; j < last; j++) {
         DrawBGLine_Extended(j, bgNum, 0, isSub);
       }
       break;
@@ -252,6 +252,13 @@ void G2SIM_DrawBG(u8 bgNum, u8 bgMode, u8 bg03D, u8 isSub) {
   TracyCZoneEnd(ctx);
 #endif
 }
+
+void G2SIM_DrawBG(u8 bgNum,u8 bgMode,u8 bg03D,u8 isSub)
+{ DrawBGLines(bgNum,bgMode,bg03D,isSub,0,SIM_NDS_SCREEN_HEIGHT); }
+#ifdef SDK_NATIVE_G3
+void G2SIM_DrawBGLine(u8 bgNum,u8 bgMode,u8 bg03D,u8 isSub,u32 line)
+{ DrawBGLines(bgNum,bgMode,bg03D,isSub,line,line+1); }
+#endif
 
 void G2SIM_DrawOBJ(u32 line, u8 isSub, int bgnum) {
   u32 dispcnt;

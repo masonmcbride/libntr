@@ -110,6 +110,7 @@ void restore(unsigned index)
 }
 extern "C" void G3Native_Reset()
 {
+    G3Native_FifoReset();
     std::memset(matrices,0,sizeof(matrices)); std::memset(stacks,0,sizeof(stacks));
     std::memset(&lighting,0,sizeof(lighting));
     position_sp=projection_sp=0; pending_attr=polygon_attr=texture=palette=0;

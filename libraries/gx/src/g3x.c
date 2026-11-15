@@ -1,3 +1,6 @@
+#ifdef SDK_NATIVE_G3
+#include <simulator/g3_handler.h>
+#endif
 #if SDK_VERSION_MAJOR == 4
 #include <nitro/gx/g3x.h>
 #include <nitro/gx/g3imm.h>
@@ -402,7 +405,10 @@ void G3X_SetHOffset (int hOffset)
 #if defined( SDK_PORT )
 static void GXi_NopClearFifo128_( register void* pDest )
 {
-    return;
+#ifdef SDK_NATIVE_G3
+    /* Original ARM routine sends 128 zero words to the fixed FIFO port. */
+    for(unsigned i=0;i<128;++i)G3Native_FifoWrite(0);
+#endif
 }
 #else
 

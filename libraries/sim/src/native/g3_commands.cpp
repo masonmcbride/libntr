@@ -3,6 +3,8 @@
 #include <simulator/drawmsg.h>
 #include <cstring>
 #include <cstdint>
+#include <cstdio>
+#include <cstdlib>
 
 namespace {
 int words(unsigned op)
@@ -103,4 +105,32 @@ extern "C" int G3Native_Execute(u32 op,const u32 *params,size_t count)
     int n=words(op);
     if(n<0||count!=(size_t)n||(count&&!params))return 0;
     execute(op,params); return 1;
+}
+
+/* Hardware FIFO words can cross CPU-send boundaries, including SBC matrices. */
+namespace {
+uint32_t fifo_packed, fifo_params[32];
+unsigned fifo_index=4, fifo_used;
+int fifo_needed;
+void fifo_advance()
+{
+    while(fifo_index<4) {
+        unsigned op=(fifo_packed>>(fifo_index*8))&255;
+        fifo_needed=words(op);
+        if(fifo_needed<0) { std::fprintf(stderr,"Invalid native GX FIFO opcode %u\n",op);std::abort(); }
+        if(fifo_needed)return;
+        execute(op,fifo_params);++fifo_index;
+    }
+}
+}
+extern "C" void G3Native_FifoReset()
+{fifo_index=4;fifo_used=0;fifo_needed=0;fifo_packed=0;}
+extern "C" void G3Native_FifoWrite(u32 word)
+{
+    if(fifo_index==4) {fifo_packed=word;fifo_index=0;fifo_used=0;fifo_advance();return;}
+    fifo_params[fifo_used++]=word;
+    if(fifo_used==(unsigned)fifo_needed) {
+        execute((fifo_packed>>(fifo_index*8))&255,fifo_params);
+        fifo_used=0;++fifo_index;fifo_advance();
+    }
 }

@@ -156,6 +156,8 @@ void G3Native_RenderFrame(void);
 void G3Native_Reset(void);
 void G3Native_Swap(u32 data);
 int G3Native_CommandList(const void *data, size_t size);
+void G3Native_FifoWrite(u32 word);
+void G3Native_FifoReset(void);
 #endif
 
 // Not GPU Commands

@@ -8,6 +8,10 @@
 #ifdef SDK_PORT
 #include <nitro/hw/X86/mmap_main.h>
 #include "simulator/assert.h"
+#ifdef SDK_NATIVE_G3
+#include <simulator/g3_handler.h>
+#include <stdlib.h>
+#endif
 #endif
 
 #define HALFW_CONDAL  0xe0000000
@@ -120,7 +124,17 @@ void MI_Copy36B(const void* pSrc, void* pDest)
 void MIi_CpuSend32( const void *srcp, volatile void *destp, u32 size )
 {
     SIM_assert_msg(size < HW_MAIN_MEM_MAIN_SIZE, "Attempt to call MIi_CpuSend32 with a size of %d bytes, which is larger than the DS memory.", size);
-    memcpy( destp, srcp, size );
+    const u32 *source=srcp;
+#ifdef SDK_NATIVE_G3
+    if(size%sizeof(u32))abort();
+    if(destp==(volatile void *)&reg_G3X_GXFIFO) {
+        for(u32 i=0;i<size/sizeof(u32);++i)G3Native_FifoWrite(source[i]);
+        return;
+    }
+#endif
+    /* Nintendo's ARM implementation increments the source only. */
+    volatile u32 *port=destp;
+    for(u32 i=0;i<size/sizeof(u32);++i)*port=source[i];
 }
 
 void MIi_CpuCopyFast( const void *srcp, void *destp, u32 size )
