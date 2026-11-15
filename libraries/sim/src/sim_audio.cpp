@@ -103,7 +103,8 @@ void SIM_Audio_Init(int aAudioFrequency)
     if(SDL_OpenAudio(&s_requestedAudioSpec, NULL) < 0) {
         printf("SDL Error %s\n", SDL_GetError());
     }
-    SDL_PauseAudio(0);#endif
+    SDL_PauseAudio(0);
+#endif
 
 }
 
