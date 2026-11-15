@@ -9,4 +9,5 @@ void SNDi_NativeDestroyBank(const SNDBankData *bank);
 void SNDi_NativeDestroyArc(const SNDWaveArc *arc);
 void SNDi_NativeSetWave(const SNDWaveArc *arc, int index, const SNDWaveData *wave);
 BOOL SNDi_NativeGetWave(const SNDWaveArc *arc, int index, const SNDWaveData **wave);
+const SNDWaveData *SNDi_NativeBankWave(const SNDBankData *bank,int arcNo,int index);
 #endif

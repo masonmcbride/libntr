@@ -540,6 +540,14 @@ BOOL SND_NoteOn (SNDExChannel * ch_p, int key, int velocity, s32 length, const S
 #if defined( SDK_PORT ) || defined(SDK_ARM7)
     static const SNDWaveData * GetWaveData (const SNDBankData * bank, int waveArcNo, int waveIndex)
     {
+#ifdef SDK_NATIVE_G3
+        /* Audio consumption and disposal share the original sound mutex. */
+        SNDi_LockMutex();
+        const SNDWaveData *wave=SNDi_NativeBankWave(bank,waveArcNo,waveIndex);
+        SNDi_UnlockMutex();
+        return wave;
+#else
+
         const SNDWaveArc * arc;
 
         SDK_MINMAX_ASSERT(waveArcNo, 0, SND_BANK_TO_WAVEARC_MAX - 1);
@@ -553,5 +561,6 @@ BOOL SND_NoteOn (SNDExChannel * ch_p, int key, int velocity, s32 length, const S
             return NULL;
 
         return SND_GetWaveDataAddress(arc, waveIndex);
+#endif
     }
 #endif

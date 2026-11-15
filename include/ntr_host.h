@@ -2,6 +2,7 @@
 #define HEARTGOLD_NTR_HOST_H
 
 #include <stdint.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -91,12 +92,12 @@ uint64_t HG_G3SubmittedFrames(void);
 #ifdef __cplusplus
 extern "C" {
 #endif
-int HG_RuntimeInitialize(void);
+typedef void (*HG_PCMRender)(int16_t *stereo, size_t frames);
+int HG_RuntimeInitialize(HG_PCMRender render);
 int HG_RuntimeActive(void);
 void HG_RuntimeShutdown(void);
 uint16_t HG_RuntimePollInput(uint16_t *x, uint16_t *y, int *touch);
 void HG_RuntimePresent(const uint8_t *rgba);
-void HG_RuntimeQueueAudio(const int16_t *stereo, size_t frames);
 #ifdef __cplusplus
 }
 #endif

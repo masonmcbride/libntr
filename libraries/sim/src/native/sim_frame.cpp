@@ -6,7 +6,6 @@
 #include <simulator/sim.h>
 extern "C" TPData s_tpData;
 extern void G2Native_RenderFrame();
-extern "C" void HG_SoundRenderFrame();
 
 /* SDK_PORT dispatch is synchronous: commands execute on the SDK thread and
  * this frame boundary replaces the desktop render/vcount semaphore handshake.
@@ -26,7 +25,7 @@ extern "C" void *SIM_Render(void *arg)
         s_tpData.x=x; s_tpData.y=y; s_tpData.touch=touch; s_tpData.validity=0;
     }
     G3Native_RenderFrame();
-    if(HG_RuntimeActive()) { G2Native_RenderFrame(); HG_SoundRenderFrame(); }
+    if(HG_RuntimeActive()) G2Native_RenderFrame();
     /* Deliver original registered callbacks. No guest scheduler is replaced. */
     if(s_reg_GX_DISPSTAT & (1<<3)) OS_IRQTable[0]();
     s_HW_INTR_CHECK_BUF|=1;

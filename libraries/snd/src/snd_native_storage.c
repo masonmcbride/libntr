@@ -39,3 +39,13 @@ BOOL SNDi_NativeGetWave(const SNDWaveArc *arc,int index,const SNDWaveData **wave
     for(ArcState *s=arcs;s;s=s->next)if(s->key==arc && s->assigned && s->assigned[index]){*wave=s->waves[index];return TRUE;}
     return FALSE;
 }
+
+const SNDWaveData *SNDi_NativeBankWave(const SNDBankData *bank,int arcNo,int index)
+{
+    if(arcNo<0 || arcNo>=4)abort();
+    for(BankState *s=banks;s;s=s->next)if(s->key==bank) {
+        const SNDWaveArc *arc=s->links[arcNo].waveArc;
+        return arc ? SND_GetWaveDataAddress(arc,index) : NULL;
+    }
+    return NULL;
+}
