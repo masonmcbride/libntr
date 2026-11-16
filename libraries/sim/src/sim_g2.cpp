@@ -606,6 +606,9 @@ static void DrawBGLine_Text(u32 line, u32 bgnum, u8 mosaic, u8 isSub) {
 
       u8 windowPass = TRUE;
 
+#ifndef SDK_NATIVE_G3
+      // Native composition owns wrapped WIN0/WIN1/OBJ masks. Pre-clipping
+      // here would discard pixels before that complete window pass.
       if (win0Enabled) {
         u8 windowRight = win0H & 0b11111111;
         u8 windowLeft = (win0H >> 8) & 0b11111111;
@@ -620,6 +623,7 @@ static void DrawBGLine_Text(u32 line, u32 bgnum, u8 mosaic, u8 isSub) {
           windowPass = ((winOut >> bgnum) & 1);
         }
       }
+#endif
 
       if (windowPass) {
         u32 tilexoff = (curtile & 0x0400) ? (7 - (xpos & 0x7)) : (xpos & 0x7);
@@ -701,6 +705,9 @@ static void DrawBGLine_Text(u32 line, u32 bgnum, u8 mosaic, u8 isSub) {
 
       u8 windowPass = TRUE;
 
+#ifndef SDK_NATIVE_G3
+      // Native composition owns wrapped WIN0/WIN1/OBJ masks. Pre-clipping
+      // here would discard pixels before that complete window pass.
       if (win0Enabled) {
         u8 windowRight = win0H & 0b11111111;
         u8 windowLeft = (win0H >> 8) & 0b11111111;
@@ -715,6 +722,7 @@ static void DrawBGLine_Text(u32 line, u32 bgnum, u8 mosaic, u8 isSub) {
           windowPass = ((winOut >> bgnum) & 1);
         }
       }
+#endif
 
       if (color) {
         u8 r;
