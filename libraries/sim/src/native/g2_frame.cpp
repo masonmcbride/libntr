@@ -89,7 +89,12 @@ void row(bool sub,int y)
                     float a=std::min(16,(int)(alpha&31))/16.f,b=std::min(16,(int)((alpha>>8)&31))/16.f;
                     if(!sub&&n==0&&(display&8)){a=s[3]/255.f;b=1-a;}
                     float f=std::min(16,(int)(bldy&31))/16.f;
-                    if(mode==1&&(blend&(1<<n))&&(blend&(1<<(8+current))))c[k]=std::min(255.f,s[k]*a+c[k]*b);
+                    // DS translucent BG0 (3D) forces alpha blending with an
+                    // eligible second target, even without a first-target bit.
+                    // Metal's blended readback already contains premultiplied RGB.
+                    if(!sub&&n==0&&(display&8)&&s[3]<255&&(mask&32)&&(blend&(1<<(8+current))))
+                        c[k]=std::min(255.f,s[k]*((s_reg_G3X_DISP3DCNT&8)?1.f:a)+c[k]*b);
+                    else if(mode==1&&(blend&(1<<n))&&(blend&(1<<(8+current))))c[k]=std::min(255.f,s[k]*a+c[k]*b);
                     else if(mode==2&&(blend&(1<<n)))c[k]=s[k]+(255-s[k])*f;
                     else if(mode==3&&(blend&(1<<n)))c[k]=s[k]*(1-f);
                     else c[k]=s[k];
