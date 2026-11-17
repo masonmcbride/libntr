@@ -92,11 +92,11 @@ static void CARDi_RequestStreamCommandCore (CARDiCommon *p)
 		switch (req_mode) {
 		case CARD_REQUEST_MODE_RECV:
 			DC_InvalidateRange(p->backup_cache_page_buf, len);
-			p->cmd->src = (u32)p->src;
+			p->cmd->src = (uPtr)p->src;
 			#if SDK_VERSION_MAJOR == 4
-			p->cmd->dst = (u32)p->backup_cache_page_buf;
+			p->cmd->dst = (uPtr)p->backup_cache_page_buf;
 			#elif SDK_VERSION_MAJOR == 5
-			p->cmd->dst = (u32)CARDi_backup_cache_page_buf;
+			p->cmd->dst = (uPtr)CARDi_backup_cache_page_buf;
 			#endif
 			break;
 		case CARD_REQUEST_MODE_SEND:
@@ -111,15 +111,15 @@ static void CARDi_RequestStreamCommandCore (CARDiCommon *p)
 			
 			DC_WaitWriteBufferEmpty();
 			#if SDK_VERSION_MAJOR == 4
-			p->cmd->src = (u32)p->backup_cache_page_buf;
+			p->cmd->src = (uPtr)p->backup_cache_page_buf;
 			#elif SDK_VERSION_MAJOR == 5
-			p->cmd->src = (u32)CARDi_backup_cache_page_buf;
+			p->cmd->src = (uPtr)CARDi_backup_cache_page_buf;
 			#endif
-			p->cmd->dst = (u32)p->dst;
+			p->cmd->dst = (uPtr)p->dst;
 			break;
 		case CARD_REQUEST_MODE_SPECIAL:
-			p->cmd->src = (u32)p->src;
-			p->cmd->dst = (u32)p->dst;
+			p->cmd->src = (uPtr)p->src;
+			p->cmd->dst = (uPtr)p->dst;
 			break;
 		}
 
@@ -151,7 +151,7 @@ static void CARDi_RequestWriteSectorCommandCore (CARDiCommon *p)
 	const u32 sector_size = CARD_GetBackupSectorSize();
 	SDK_USING_BACKUP();
 
-	if ((((u32)p->dst | p->len) & (sector_size - 1)) != 0) {
+	if ((((uPtr)p->dst | p->len) & (sector_size - 1)) != 0) {
 		p->flag &= ~CARD_STAT_CANCEL;
 		p->cmd->result = CARD_RESULT_INVALID_PARAM;
 	} else {
@@ -164,7 +164,7 @@ static void CARDi_RequestWriteSectorCommandCore (CARDiCommon *p)
 				break;
 			}
 
-			p->cmd->dst = (u32)p->dst;
+			p->cmd->dst = (uPtr)p->dst;
 			p->cmd->len = len;
 
 			if (!CARDi_Request(p, CARD_REQ_ERASE_SECTOR_BACKUP, 1)) {
@@ -194,11 +194,11 @@ static void CARDi_RequestWriteSectorCommandCore (CARDiCommon *p)
 				DC_WaitWriteBufferEmpty();
 
 				#if SDK_VERSION_MAJOR == 4
-				p->cmd->src = (u32)p->backup_cache_page_buf;
+				p->cmd->src = (uPtr)p->backup_cache_page_buf;
 				#elif SDK_VERSION_MAJOR == 5
-				p->cmd->src = (u32)CARDi_backup_cache_page_buf;
+				p->cmd->src = (uPtr)CARDi_backup_cache_page_buf;
 				#endif
-				p->cmd->dst = (u32)p->dst;
+				p->cmd->dst = (uPtr)p->dst;
 				p->cmd->len = page;
 
 				if (!CARDi_Request(p, CARD_REQ_PROGRAM_BACKUP, CARD_RETRY_COUNT_MAX)) {
@@ -225,8 +225,8 @@ static void CARDi_AccessStatusCore(CARDiCommon *p)
 {
   CARDRequest command = (CARDRequest)CARDi_backup_cache_page_buf[1];
   DC_FlushRange(CARDi_backup_cache_page_buf, 1);
-  p->cmd->src = (u32)CARDi_backup_cache_page_buf;
-  p->cmd->dst = (u32)CARDi_backup_cache_page_buf;
+  p->cmd->src = (uPtr)CARDi_backup_cache_page_buf;
+  p->cmd->dst = (uPtr)CARDi_backup_cache_page_buf;
   (void)CARDi_Request(p, command, 1);
   DC_InvalidateRange(CARDi_backup_cache_page_buf, 1);
 }
@@ -387,7 +387,7 @@ static void CARDi_IdentifyBackupCore(CARDiCommon * p)
   (void)CARDi_Request(p, CARD_REQ_IDENTIFY, 1);
 
   p->cmd->src = 0;
-  p->cmd->dst = (u32)CARDi_backup_cache_page_buf;
+  p->cmd->dst = (uPtr)CARDi_backup_cache_page_buf;
   p->cmd->len = 1;
   (void)CARDi_Request(p, CARD_REQ_READ_BACKUP, 1);
 }
@@ -409,7 +409,7 @@ static void CARDi_BeginBackupCommand(CARDAccessLevel level, MIDmaCallback callba
 #endif
 
 
-BOOL CARDi_RequestStreamCommand (u32 src, u32 dst, u32 len,
+BOOL CARDi_RequestStreamCommand (uPtr src, uPtr dst, u32 len,
                                  MIDmaCallback callback, void *arg, BOOL is_async,
                                  CARDRequest req_type, int req_retry, CARDRequestMode req_mode)
 {
@@ -476,8 +476,8 @@ int CARDi_AccessStatus (CARDRequest command, u8 value)
 	cardi_common.cur_th = OS_GetCurrentThread();
 	p->backup_cache_page_buf[0] = value;
 	DC_FlushRange(p->backup_cache_page_buf, 1);
-	p->cmd->src = (u32)p->backup_cache_page_buf;
-	p->cmd->dst = (u32)p->backup_cache_page_buf;
+	p->cmd->src = (uPtr)p->backup_cache_page_buf;
+	p->cmd->dst = (uPtr)p->backup_cache_page_buf;
 	(void)CARDi_Request(p, command, 1);
 	DC_InvalidateRange(p->backup_cache_page_buf, 1);
 	CARDi_EndTask(p, TRUE);
@@ -497,7 +497,7 @@ int CARDi_AccessStatus (CARDRequest command, u8 value)
 	#endif
 }
 
-BOOL CARDi_RequestWriteSectorCommand (u32 src, u32 dst, u32 len, BOOL verify, MIDmaCallback callback, void *arg, BOOL is_async)
+BOOL CARDi_RequestWriteSectorCommand (uPtr src, uPtr dst, u32 len, BOOL verify, MIDmaCallback callback, void *arg, BOOL is_async)
 {
 	#if SDK_VERSION_MAJOR == 4
 	CARDiCommon *const p = &cardi_common;
@@ -590,7 +590,7 @@ BOOL CARD_IdentifyBackup (CARDBackupType type)
 	(void)CARDi_Request(p, CARD_REQ_IDENTIFY, 1);
 
 	p->cmd->src = 0;
-	p->cmd->dst = (u32)p->backup_cache_page_buf;
+	p->cmd->dst = (uPtr)p->backup_cache_page_buf;
 	p->cmd->len = 1;
 	(void)CARDi_Request(p, CARD_REQ_READ_BACKUP, 1);
 	CARDi_EndTask(p, TRUE);

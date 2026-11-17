@@ -12,6 +12,14 @@ int HG_CartridgeInitialize(const char *path, void *header);
 void HG_CartridgeTransfer(uint32_t offset, void *dst, uint32_t length);
 void HG_CartridgeShutdown(void);
 uint32_t HG_CartridgeIdentity(void);
+/* Raw cartridge backup bytes, separate from firmware and ROM. */
+int HG_BackupOpen(const char *path, uint32_t size);
+void HG_BackupClose(void);
+uint32_t HG_BackupSize(void);
+int HG_BackupRead(uint32_t offset, void *data, uint32_t length);
+int HG_BackupWrite(uint32_t offset, const void *data, uint32_t length, int program);
+int HG_BackupVerify(uint32_t offset, const void *data, uint32_t length);
+int HG_BackupErase(uint32_t offset, uint32_t length);
 
 /* Host services used by libntr's portable C implementation, not an SDL ABI. */
 typedef struct HG_Thread HG_Thread;

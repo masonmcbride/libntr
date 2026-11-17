@@ -87,12 +87,16 @@ extern "C" {
 typedef s32 CARDiOwner;
 
 #if (SDK_VERSION_MAJOR == 4)
-typedef struct CARDiCommandArg {
+typedef struct
+#ifdef SDK_PORT
+ ATTRIBUTE_ALIGN(32)
+#endif
+ CARDiCommandArg {
 	CARDResult result;
 	CARDBackupType type;
 	u32 id;
-	u32 src;
-	u32 dst;
+	uPtr src;
+	uPtr dst;
 	u32 len;
 	struct {
 		u32 total_size;
@@ -140,8 +144,8 @@ typedef struct CARDiCommon {
   const CARDDmaInterface *DmaCall;
   OSThread *current_thread_9;
 #endif
-	u32 src;
-	u32 dst;
+	uPtr src;
+	uPtr dst;
 	u32 len;
 	u32 dma;
 	CARDRequest req_type;
