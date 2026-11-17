@@ -38,7 +38,13 @@ static inline void OS_SetTimerCount (OSTimer id, u16 count)
 {
 	SDK_ASSERT(OS_TIMER_0 <= id && id <= OS_TIMER_3);
     #ifdef SDK_PORT
-    *((REGType16 *)(REG_TM0CNT_L_ADDR + id * 4)) = count;
+    /* Host register variables are independent objects, not a DS MMIO array. */
+    switch (id) {
+    case OS_TIMER_0: reg_OS_TM0CNT_L = count; break;
+    case OS_TIMER_1: reg_OS_TM1CNT_L = count; break;
+    case OS_TIMER_2: reg_OS_TM2CNT_L = count; break;
+    case OS_TIMER_3: reg_OS_TM3CNT_L = count; break;
+    }
     #else
 	*((REGType16 *)((u32)REG_TM0CNT_L_ADDR + id * 4)) = count;
     #endif
@@ -48,7 +54,12 @@ static inline void OS_SetTimerControl (OSTimer id, u16 control)
 {
 	SDK_ASSERT(OS_TIMER_0 <= id && id <= OS_TIMER_3);
     #ifdef SDK_PORT
-    *((REGType16 *)(REG_TM0CNT_H_ADDR + id * 4)) = control;
+    switch (id) {
+    case OS_TIMER_0: reg_OS_TM0CNT_H = control; break;
+    case OS_TIMER_1: reg_OS_TM1CNT_H = control; break;
+    case OS_TIMER_2: reg_OS_TM2CNT_H = control; break;
+    case OS_TIMER_3: reg_OS_TM3CNT_H = control; break;
+    }
     #else
 	*((REGType16 *)((u32)REG_TM0CNT_H_ADDR + id * 4)) = control;
     #endif
