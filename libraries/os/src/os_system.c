@@ -2,14 +2,35 @@
 #include <nitro/code32.h>
 
 #ifdef SDK_PORT
+#if defined(SDK_AARCH64) && defined(SDK_BUILD_MACOS)
+extern void SIM_PollVBlank(void);
+static _Thread_local OSIntrMode native_interrupt_mask;
+static OSIntrMode Native_RestoreInterruptMask(OSIntrMode state, OSIntrMode bits)
+{
+    OSIntrMode previous = native_interrupt_mask & bits;
+    native_interrupt_mask = (native_interrupt_mask & ~bits) | (state & bits);
+    if (!(native_interrupt_mask & HW_PSR_IRQ_DISABLE)) SIM_PollVBlank();
+    return previous;
+}
+#endif
 OSIntrMode OS_EnableInterrupts( void )
 {
+#if defined(SDK_AARCH64) && defined(SDK_BUILD_MACOS)
+    return Native_RestoreInterruptMask(0, HW_PSR_IRQ_DISABLE);
+#else
     return 0;
+#endif
 }
 
 OSIntrMode OS_DisableInterrupts( void )
 {
+#if defined(SDK_AARCH64) && defined(SDK_BUILD_MACOS)
+    OSIntrMode previous = native_interrupt_mask & HW_PSR_IRQ_DISABLE;
+    native_interrupt_mask |= HW_PSR_IRQ_DISABLE;
+    return previous;
+#else
     return 0;
+#endif
 }
 
 OSProcMode OS_GetProcMode( void )
@@ -19,27 +40,50 @@ OSProcMode OS_GetProcMode( void )
 
 OSIntrMode OS_DisableInterrupts_IrqAndFiq( void )
 {
+#if defined(SDK_AARCH64) && defined(SDK_BUILD_MACOS)
+    OSIntrMode bits = HW_PSR_IRQ_DISABLE | HW_PSR_FIQ_DISABLE;
+    OSIntrMode previous = native_interrupt_mask & bits;
+    native_interrupt_mask |= bits;
+    return previous;
+#else
     return 0;
+#endif
 }
 
 OSIntrMode OS_RestoreInterrupts( OSIntrMode state )
 {
+#if defined(SDK_AARCH64) && defined(SDK_BUILD_MACOS)
+    return Native_RestoreInterruptMask(state, HW_PSR_IRQ_DISABLE);
+#else
     return 0;
+#endif
 }
 
 OSIntrMode OS_EnableInterrupts_IrqAndFiq( void )
 {
+#if defined(SDK_AARCH64) && defined(SDK_BUILD_MACOS)
+    return Native_RestoreInterruptMask(0, HW_PSR_IRQ_DISABLE | HW_PSR_FIQ_DISABLE);
+#else
     return 0;
+#endif
 }
 
 OSIntrMode OS_RestoreInterrupts_IrqAndFiq( OSIntrMode state )
 {
+#if defined(SDK_AARCH64) && defined(SDK_BUILD_MACOS)
+    return Native_RestoreInterruptMask(state, HW_PSR_IRQ_DISABLE | HW_PSR_FIQ_DISABLE);
+#else
     return 0;
+#endif
 }
 
 OSIntrMode_Irq OS_GetCpsrIrq( void )
 {
+#if defined(SDK_AARCH64) && defined(SDK_BUILD_MACOS)
+    return (OSIntrMode_Irq)(native_interrupt_mask & HW_PSR_IRQ_DISABLE);
+#else
     return 0;
+#endif
 }
 #else
 asm OSIntrMode OS_EnableInterrupts (void)

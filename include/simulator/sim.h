@@ -54,6 +54,8 @@ extern "C" {
 #endif
 
 void SIM_PreRenderVBlank(void);
+/* Main-thread-only, due VBlank delivery at native SDK safe points. */
+void SIM_PollVBlank(void);
 void SIM_PostRenderVBlank(void);
 void SIM_procPXI(void);
 void SIM_procPXI7to9(void);

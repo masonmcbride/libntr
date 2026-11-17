@@ -298,6 +298,7 @@ void OS_WaitIrq(BOOL clear, OSIrqMask irqFlags) {
       SIM_PreRenderVBlank();
       SIM_Render(NULL);
       SIM_PostRenderVBlank();
+      (void)OS_RestoreInterrupts(enabled);
       return;
   }
   #endif
