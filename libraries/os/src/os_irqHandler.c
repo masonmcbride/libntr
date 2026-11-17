@@ -359,23 +359,7 @@ void OS_WaitIrq (BOOL clear, OSIrqMask irqFlags)
 #ifdef SDK_NATIVE_G3
         (void)OS_RestoreInterrupts(enabled);
 
-#if defined(SDK_BUILD_MACOS)
-        /*
-         * The legacy simulator dispatches OS_IRQTable[0] from its renderer.
-         * The native G3 renderer does not. Deliver the registered VBlank
-         * interrupt once at the completed native frame boundary.
-         *
-         * This is the original OS IRQ handler, not gSystem.vBlankIntr:
-         * the handler executes the VBlank SysTask queue and sets the
-         * interrupt check flag before the main thread resumes.
-         */
-        if (OS_GetIrqMask() & OS_IE_V_BLANK) {
-            OSIrqFunction vblank = OS_GetIrqFunction(OS_IE_V_BLANK);
-            if (vblank != NULL) {
-                vblank();
-            }
-        }
-#endif
+        /* SIM_Render owns native frame-boundary VBlank dispatch. */
 #endif
         return;
     }

@@ -72,6 +72,7 @@ OSTick OS_GetTick (void)
 
     #ifdef SDK_PORT
     u64 milliseconds = HG_GetTicks64();
+    (void)OS_RestoreInterrupts(prev);
     return ((OSTick)( ((OS_SYSTEM_CLOCK/1000) * (u64)(milliseconds)) / 64 ));
     #else
     countL = *(REGType16 *)((u32)REG_TM0CNT_L_ADDR + OSi_TICK_TIMER * 4);
